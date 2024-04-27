@@ -57,13 +57,13 @@ const PlasmoInline = () => {
   }, [share]) // Depend on share to trigger updates
 
   return (
-    <div className="flex flex-row items-center flex-1 gap-2 p-2">
+    <div className="flex flex-row items-center flex-1 gap-2 p-2 pl-4">
       <div className="flex flex-row items-center gap-4">
         <Input
           value={share.toString()} // Convert number to string for the input field
           onChange={(e) => setShare(Number(e.target.value))} // Convert input string back to number
           // placeholder="Enter shares"
-          className="w-20"
+          className="w-20 h-9"
         />
         <Button
           onClick={() => setShare((prevShare) => prevShare + 1)} // Correctly handle increment

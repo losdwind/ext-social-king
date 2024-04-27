@@ -1,7 +1,6 @@
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import cssText from "data-text:~style.css"
 import type { PlasmoCSConfig } from "plasmo"
-
-import { CountButton } from "~features/count-button"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://twitter.com/*"]
@@ -15,8 +14,16 @@ export const getStyle = () => {
 
 const PlasmoOverlay = () => {
   return (
-    <div className="fixed z-50 flex top-32 right-8">
-      <CountButton />
+    <div className="fixed z-50 flex top-32">
+      <Avatar>
+        <AvatarImage
+          src="../../assets/icon.png"
+          alt="socialking logo"
+          width={80}
+          height={80}
+        />
+        <AvatarFallback>CN</AvatarFallback>
+      </Avatar>
     </div>
   )
 }
