@@ -1,106 +1,105 @@
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import cssText from "data-text:~style.css"
+import { Plus, PlusSquareIcon } from "lucide-react"
 import type { PlasmoCSConfig, PlasmoGetInlineAnchorList } from "plasmo"
+import { useEffect, useState } from "react"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://twitter.com/*"]
 }
 
-// // Use this to optimize unmount lookups
-// // export const getShadowHostId = () => "inline-twitter-unique-id"
-
 export const getStyle = () => {
   const style = document.createElement("style")
-  style.textContent = cssText
+  style.textContent = cssText.replaceAll(":root", ":host(plasmo-csui)")
   return style
 }
 
 export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
   const anchors = document.querySelectorAll('article[role="article"]')
-  return Array.from(anchors).map((element) => {
-    // const element = element.querySelector('[role="group"]')
-    if (element) {
-      console.log({ element, insertPosition: "afterend" })
-      return { element, insertPosition: "afterend" }
-    }
-  })
+  return Array.from(anchors)
+    .map((element) => {
+      if (element) {
+        console.log({ element, insertPosition: "afterend" })
+        return { element, insertPosition: "afterend" }
+      }
+      return null
+    })
+    .filter((item) => item !== null) // Ensure no null values are included
 }
 
+// export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
+//   const anchors = document.querySelectorAll('article[role="article"]')
+//   return Array.from(anchors).map((element) => {
+//     console.log({ element, insertPosition: "afterend" })
+//     return { element, insertPosition: "afterend" }
+//   })
+// }
+
 const PlasmoInline = () => {
+  const [share, setShare] = useState(1)
+  const [totalValue, setTotalValue] = useState(0)
+  const [price, setPrice] = useState(0)
+
+  const getLatestPrice = () => {
+    // Placeholder function to mimic fetching the latest price
+    return 100 // Example static price
+  }
+
+  const getLatestTotalValue = () => {
+    return getLatestPrice() * share
+  }
+
+  useEffect(() => {
+    // Automatically update the price and total value when shares change
+    setPrice(getLatestPrice())
+    setTotalValue(getLatestTotalValue())
+  }, [share]) // Depend on share to trigger updates
+
   return (
-    // <div className="flex">
-    // <button
-    //   onClick={() => console.log("buy 1")}
-    //   type="button"
-    //   className="flex flex-row items-center px-4 py-2 text-sm transition-all border-none rounded-lg shadow-lg hover:shadow-md active:scale-105 bg-slate-50 hover:bg-slate-100 text-slate-800 hover:text-slate-900">
-    //   Buy
-    // </button>
-    // <button
-    //   onClick={() => console.log("buy 1")}
-    //   type="button"
-    //   className="flex flex-row items-center px-4 py-2 text-sm transition-all border-none rounded-lg shadow-lg hover:shadow-md active:scale-105 bg-slate-50 hover:bg-slate-100 text-slate-800 hover:text-slate-900">
-    //   sell
-    // </button>
-    // </div>
-    <div className="flex flex-col justify-start items-start self-stretch flex-grow-0 flex-shrink-0 overflow-hidden gap-2.5 px-2 pb-2">
-      <div className="flex justify-center items-center self-stretch flex-grow-0 flex-shrink-0 relative gap-2.5 p-2">
-        <p className="flex-grow w-[792px] text-base font-medium text-left text-[#09090b]">
-          $12.2
-        </p>
-        <p className="flex-grow-0 flex-shrink-0 text-xs font-light text-left text-[#09090b]">
-          $0.11 for 0.5&nbsp;share
-        </p>
+    <div className="flex flex-row items-center flex-1 gap-2 p-2">
+      <div className="flex flex-row items-center gap-4">
+        <Input
+          value={share.toString()} // Convert number to string for the input field
+          onChange={(e) => setShare(Number(e.target.value))} // Convert input string back to number
+          // placeholder="Enter shares"
+          className="w-20"
+        />
+        <Button
+          onClick={() => setShare((prevShare) => prevShare + 1)} // Correctly handle increment
+          size="sm"
+          variant="outline">
+          <Plus className="text-xs font-medium" />
+        </Button>
       </div>
-      <div className="flex justify-start items-start self-stretch flex-grow-0 flex-shrink-0 gap-2.5">
-        <div className="flex justify-start items-start flex-grow gap-2.5">
-          <div className="flex flex-col justify-start items-start flex-grow-0 flex-shrink-0 w-[91px] gap-1">
-            <div
-              className="flex items-center self-stretch justify-start flex-grow-0 flex-shrink-0 gap-2 px-3 py-2 overflow-hidden bg-white border rounded-md border-zinc-200"
-              style={{ boxShadow: "0px 1px 2px 0 rgba(16,24,40,0.05)" }}>
-              <div className="relative flex items-center justify-start flex-grow gap-2">
-                <p className="flex-grow w-[67px] text-sm text-left text-zinc-500">
-                  0.5
-                </p>
-              </div>
-            </div>
-          </div>
-          <div
-            className="relative flex items-center justify-center flex-grow-0 flex-shrink-0 overflow-hidden bg-white border rounded-md w-9 h-9 border-zinc-200"
-            style={{ boxShadow: "0px 1px 2px 0 rgba(16,24,40,0.05)" }}>
-            <svg
-              width={16}
-              height={16}
-              viewBox="0 0 16 16"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
-              className="relative flex-grow-0 flex-shrink-0 w-4 h-4"
-              preserveAspectRatio="xMidYMid meet">
-              <path
-                d="M3.33337 7.99998H12.6667M8.00004 3.33331V12.6666"
-                stroke="#18181B"
-                stroke-width="1.33"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-              />
-            </svg>
+      <div className="flex flex-row justify-center flex-1 gap-4 ">
+        <div className="text-xl font-medium">${totalValue.toFixed(2)}</div>
+        <div className="text-xs font-light">
+          <div>${price.toFixed(2)}</div>
+          <div>
+            for {share} share{share !== 1 ? "s" : ""}
           </div>
         </div>
-        <div
-          className="relative flex items-center justify-center flex-grow-0 flex-shrink-0 gap-2 px-4 py-2 overflow-hidden border rounded-md h-9 bg-zinc-100 border-zinc-300"
-          style={{ boxShadow: "0px 1px 2px 0 rgba(16,24,40,0.05)" }}>
-          <p className="flex-grow-0 flex-shrink-0 text-sm font-medium text-left text-[#09090b]">
-            Buy
-          </p>
-        </div>
-        <div
-          className="relative flex items-center justify-center flex-grow-0 flex-shrink-0 gap-2 px-4 py-2 overflow-hidden bg-white border rounded-md h-9 border-zinc-200"
-          style={{ boxShadow: "0px 1px 2px 0 rgba(16,24,40,0.05)" }}>
-          <p className="flex-grow-0 flex-shrink-0 text-sm font-medium text-left text-[#09090b]">
-            Sell
-          </p>
-        </div>
+      </div>
+      <div className="flex flex-row gap-2 ">
+        <Button size="sm" variant="outline" onClick={() => onBuyShare()}>
+          Buy
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => onSellShare()}>
+          Sell
+        </Button>
       </div>
     </div>
   )
+}
+
+// Define these functions if they involve more complex logic
+const onBuyShare = () => {
+  console.log("Buying shares")
+}
+
+const onSellShare = () => {
+  console.log("Selling shares")
 }
 
 export default PlasmoInline

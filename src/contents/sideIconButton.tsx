@@ -4,12 +4,12 @@ import type { PlasmoCSConfig } from "plasmo"
 import { CountButton } from "~features/count-button"
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://twitter.com/*"],
+  matches: ["https://twitter.com/*"]
 }
 
 export const getStyle = () => {
   const style = document.createElement("style")
-  style.textContent = cssText
+  style.textContent = cssText.replaceAll(":root", ":host(plasmo-csui)")
   return style
 }
 
