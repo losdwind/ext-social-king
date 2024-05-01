@@ -1,79 +1,105 @@
-import assert from "assert"
+// background.ts
+// background.ts
+chrome.runtime.onMessage.addListener(
+  function(request, sender, sendResponse) {
+    if (request.type === 'FETCH_DATA') {
+      const query = `
+        query {
+          creates(first: 5) {
+            id
+            assetId
+            sender
+            arTxId
+          }
+        }`;
 
-import { Storage } from "@plasmohq/storage"
-import { SecureStorage } from "@plasmohq/storage/secure"
+      fetch("https://api.studio.thegraph.com/query/72269/bodhi_wtf/version/latest", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({ query })
+      })
+      .then(response => response.json())
+      .then(data => sendResponse({data}))
+      .catch(error => sendResponse({error: error.message}));
 
-const PASSWORD = "password"
-const TEST_KEY = "ship"
-const TEST_DATA = "1701"
-
-async function testSecureStorage() {
-  const storage = new SecureStorage({ area: "local" })
-  await storage.clear()
-
-  await storage.setPassword(PASSWORD)
-  // Must set password then watch, otherwise the namespace key will mismatch
-  storage.watch({
-    [TEST_KEY]: (c) => {
-      console.log(TEST_KEY, c)
+      return true; // Keep the messaging channel open for the response
     }
-  })
+  }
+);
 
-  await storage.set(TEST_KEY, TEST_DATA)
 
-  const foo = await storage.get(TEST_KEY)
+chrome.sidePanel
+  .setPanelBehavior({ openPanelOnActionClick: true })
+  .catch((error) => console.error(error));
 
-  assert(foo === TEST_DATA, "ENCRYPTION FAILED")
+  const TWITTER_ORIGIN = 'https://twitter.com';
 
-  console.log(await storage.getAll())
+chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
+  if (!tab.url) return;
+  const url = new URL(tab.url);
+  // Enables the side panel on google.com
+  if (url.origin === TWITTER_ORIGIN) {
+    await chrome.sidePanel.setOptions({
+      tabId,
+      path: 'sidepanel.html',
+      enabled: true
+    });
+  } else {
+    // Disables the side panel on all other sites
+    await chrome.sidePanel.setOptions({
+      tabId,
+      enabled: false
+    });
+  }
+});
 
-  await storage.set(TEST_KEY, TEST_DATA + "2")
+// // Context Menue
+// function setupContextMenu() {
+//   chrome.contextMenus.create({
+//     id: 'sell',
+//     title: 'Sell',
+//     contexts: ['selection']
+//   });
+//   chrome.contextMenus.create({
+//     id: 'buy',
+//     title: 'buy',
+//     contexts: ['selection']
+//   });
+// }
 
-  await storage.clear()
-}
+// chrome.runtime.onInstalled.addListener(() => {
+//   setupContextMenu();
+// });
 
-async function testBaseStorage() {
-  const storage = new Storage()
-  await storage.clear()
+// chrome.contextMenus.onClicked.addListener((data, tab) => {
+//   // Store the last word in chrome.storage.session.
+//   chrome.storage.session.set({ contentID: data.selectionText });
 
-  storage.watch({
-    hello: (c) => {
-      console.log("hello", c)
-    },
-    "serial-number": (c) => {
-      console.log("serial-number", c)
-    },
-    make: (c) => {
-      console.log("make", c)
-    }
-  })
+//   // Make sure the side panel is open.
+//   chrome.sidePanel.open({ tabId: tab.id });
+// });
 
-  await storage.set("hello", 1)
-  await storage.set("serial-number", 1701)
-  await storage.set("make", "plasmo-corp")
 
-  // The storage.set promise apparently resolves before the watch listener is registered...
-  // So we need to wait a bit before adding the next watch if we want to split the watchers. Otherwise, the second watch will get the first set of change as well.
-  await new Promise((resolve) => setTimeout(resolve, 470))
 
-  storage.watch({
-    make: (c) => {
-      console.log("watch make 2", c)
-    }
-  })
-
-  await storage.set("hello", 2)
-  await storage.set("serial-number", 8451)
-  await storage.set("make", "PlasmoHQ")
-}
-
-const main = async () => {
-  await testSecureStorage()
-
-  // Wait for all the watch event to be processed
-  await new Promise((resolve) => setTimeout(resolve, 1470))
-
-  await testBaseStorage()
-}
-
-main()
+// const client = createClient({
+//   url: '/graphql', // This is a placeholder, actual requests are sent via background.ts
+//   exchanges: [cacheExchange, fetchExchange],
+//   fetchOptions: () => {
+//     return {
+//       fetch: (url: string, options: any) => {
+//         return new Promise((resolve, reject) => {
+//           chrome.runtime.sendMessage({ query: options.body }, response => {
+//             if (response.error) {
+//               reject(response.error);
+//             } else {
+//               resolve(new Response(JSON.stringify(response.data)));
+//             }
+//           });
+//         });
+//       }
+//     };
+//   }
+// });

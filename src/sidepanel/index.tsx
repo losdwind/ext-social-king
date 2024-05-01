@@ -1,26 +1,24 @@
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import type { PlasmoCSConfig } from "plasmo"
 
-// import { ThirdwebProvider } from "thirdweb/react"
-
-import { HomeTab } from "./home/HomeTab"
 
 import "~style.css"
+import { LoginButton } from "../contents/login"
+import {MemoryRouter} from "react-router-dom"
+import { Route, Routes } from "react-router-dom"
+import { Detail } from "./postDetail"
+import { HomeTab } from "./home"
+import { createClient, Provider, useQuery, cacheExchange, fetchExchange } from 'urql';
+  
 
-import { AuthButton } from "./home/AuthButton"
-
-// export const config: PlasmoCSConfig = {
-//   action: {
-//     default_title: "Click to open panel"
-//   }
-// }
 
 function IndexSidePanel() {
   return (
-    <div>
-      {/* <AuthButton /> */}
-      <HomeTab />
-    </div>
+      <MemoryRouter>
+        <Routes>
+          <Route path="/" element={<HomeTab />} />
+          <Route path="/detail/:id" element={<Detail />} />
+        </Routes>
+      </MemoryRouter>
   )
 }
 

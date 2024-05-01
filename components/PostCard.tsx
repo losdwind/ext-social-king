@@ -5,11 +5,15 @@
  */
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import Link from "next/link"
 
-// import Link from "next/link"
+import type { Post } from "./PostList"
+import { Link} from "react-router-dom"
+import { AddressDisplay } from "./AddressDisplay"
+interface PostProps {
+  post: Post
+}
 
-export default function Component() {
+export default function Post({post}:PostProps) {
   return (
     <div className="bg-gray-100 dark:bg-gray-950 p-4 md:p-6 rounded-lg shadow-md overflow-auto max-h-[80vh]">
       <ul className="space-y-4">
@@ -17,23 +21,25 @@ export default function Component() {
           <div className="max-w-md p-6 mx-auto bg-white rounded-lg shadow-md dark:bg-gray-950">
             <div className="flex items-center justify-between mb-4">
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                <span className="font-medium">0x3a5...b2c9</span>| Post #124
+                <span className="font-medium"><AddressDisplay address={post.sender} /></span>| Post #${post.assetId}
                 {"\n                        "}
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
                 April 27, 2024
               </div>
             </div>
-            <Link className="block mb-4" href="/detail">
-              <h2 className="mb-2 text-xl font-bold">
+            <Link className="block mb-4" to={`/detail/${post.id}`}>
+              {/* <h2 className="mb-2 text-xl font-bold">
                 Introducing our new product line
               </h2>
               <p className="text-gray-700 dark:text-gray-300">
                 We're excited to announce the launch of our latest product line,
                 designed to revolutionize the industry. Learn more about the
                 features and benefits...
-              </p>
+              </p> */}
+              <img alt="arweave" style={{ width: '200px' }} src={`https://arweave.net/${post.arxId}`}/>
             </Link>
+
             <div className="flex items-center justify-between mb-4">
               <div className="font-medium text-gray-700 dark:text-gray-300">
                 Current Value: $1,250

@@ -1,18 +1,43 @@
+import { PostList, type Post } from "@/components/PostList"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Search } from "lucide-react"
+import React, { useEffect, useState } from 'react';
 
-import { posts } from "~sidepanel/home/mockData"
-
-// import { AuthButton } from "./AuthButton"
-import { PostList } from "./PostList"
-
-// import { AuthButton } from "./ThirdWebAuth"
 
 export function HomeTab() {
+
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    setLoading(true);
+    chrome.runtime.sendMessage({ type: 'FETCH_DATA' }, (response) => {
+      if (response.error) {
+        setError(response.error);
+        setLoading(false);
+      } else {
+        setPosts(response.data.data.creates.map((post: any) => (
+          {
+            id: post.id,
+            assetId: post.assetId,
+            arTxId:post.arTxId,
+            sender:post.sender
+          }
+        )));
+        setLoading(false);
+      }
+    });
+    console.log(posts)
+  }, []);
+
+if (loading) return <div>Loading...</div>;
+  if (error) return <div>Error: {error}</div>;
+
   return (
     <TooltipProvider delayDuration={0}>
       <Tabs defaultValue="latest">
@@ -43,7 +68,7 @@ export function HomeTab() {
           <PostList items={posts} />
         </TabsContent>
         <TabsContent value="top" className="m-0">
-          <PostList items={posts.filter((item) => !item.read)} />
+          <PostList items={posts.filter((item) => item)} />
         </TabsContent>
       </Tabs>
     </TooltipProvider>
