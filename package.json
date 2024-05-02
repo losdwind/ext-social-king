@@ -82,6 +82,7 @@
     ],
     "action": {
       "default_title": "Click to open Social King side panel"
-    }
+    },
+    "permissions": ["tabs", "activeTab"]
   }
 }

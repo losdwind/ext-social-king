@@ -3,13 +3,16 @@ import { Input } from "@/components/ui/input"
 import cssText from "data-text:~style.css"
 import { Plus, PlusSquareIcon } from "lucide-react"
 import { type PlasmoCSConfig, type PlasmoGetInlineAnchorList } from "plasmo"
-
 import { useEffect, useState } from "react"
-import { createPublicClient, http, createWalletClient, custom, getContract } from 'viem';
-import { optimism } from 'viem/chains';
-import { LoginButton } from "./login"
-import { bodhiAbi } from "@/abi/bodhiAbi"
+import type { Address } from "viem"
 
+import {
+  getLatestPrice,
+  getLatestTotalValue,
+  onBuyShare,
+  onSellShare
+} from "../../lib/viem"
+import { LoginButton } from "../sidepanel/login"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://twitter.com/*"],
@@ -29,28 +32,6 @@ export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
   })
 }
 
-// 2. Set up your client with desired chain & transport.
-const publicClient
- = createPublicClient({ 
-  chain: optimism,
-  transport: http("https://rpc.particle.network/evm-chain?chainId=1&projectUuid=5cf89b55-8b00-4c19-9844-7729a490a5a2&projectKey=cR2VL9YnJzoWbT2Zgow5W728kUecEuTciTpwKBQO")
-})
-
-const walletClient = createWalletClient({
-  chain: optimism,
-  transport: custom(window.ethereum)
-})
-
-// Create contract instance
-const contract = getContract({
-  address: '0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF',
-  abi: bodhiAbi,
-  // 1a. Insert a single client
-  client: publicClient,
-  // 1b. Or public and/or wallet clients
-  client: { public: publicClient, wallet: walletClient }
-})
-
 // // 2. Call contract methods, fetch events, listen to events, etc.
 // const result = await contract.read.totalSupply()
 // const logs = await contract.getEvents.Transfer()
@@ -60,40 +41,23 @@ const contract = getContract({
 // )
 
 const PlasmoInline = () => {
-  const [share, setShare] = useState(1)
+  const [share, setShare] = useState(1e18)
+  const [asset, setAsset] = useState(0)
   const [totalValue, setTotalValue] = useState("")
   const [price, setPrice] = useState("")
-
-
-
-  const getLatestPrice = async () => {
-    const buyPrice = await contract.read.getBuyPrice(assetId:0, amount:1)
-    return buyPrice
-  }
-
-  const getLatestTotalValue = async () => {
-    const value = await getLatestPrice() * BigInt(share)
-    return value
-  }
-
-  // Define these functions if they involve more complex logic
-const onBuyShare =async () => {
-console.log("Buying shares")
-}
-
-const onSellShare = async () => {
-console.log("Selling shares")
-}
+  const [account, setAccount] = useState<Address>()
 
   useEffect(() => {
     const fetch = async () => {
-    // Automatically update the price and total value when shares change
-    const price = await getLatestPrice()
+      // Automatically update the price and total value when shares change
+      const price = await getLatestPrice(asset, share)
+      // console.log(`price ===> ${price}`)
 
-    const value = await getLatestTotalValue()
+      const value = await getLatestTotalValue(asset)
+      // console.log(`value ===> ${value}`)
 
-    setPrice(price.toString())
-    setTotalValue(value.toString())
+      setPrice(price.toString())
+      setTotalValue(value.toString())
     }
 
     fetch()
@@ -101,7 +65,6 @@ console.log("Selling shares")
 
   return (
     <div className="flex flex-row items-center flex-1 gap-2 p-2 pl-4">
-      <LoginButton />
       <div className="flex flex-row items-center gap-4">
         <Input
           value={share.toString()} // Convert number to string for the input field
@@ -126,10 +89,16 @@ console.log("Selling shares")
         </div>
       </div>
       <div className="flex flex-row gap-2 ">
-        <Button size="sm" variant="outline" onClick={() => onBuyShare()}>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => onBuyShare(account, asset, share)}>
           Buy
         </Button>
-        <Button size="sm" variant="outline" onClick={() => onSellShare()}>
+        <Button
+          size="sm"
+          variant="outline"
+          onClick={() => onSellShare(account, asset, share)}>
           Sell
         </Button>
       </div>

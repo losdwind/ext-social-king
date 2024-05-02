@@ -1,9 +1,8 @@
 // background.ts
-// background.ts
-chrome.runtime.onMessage.addListener(
-  function(request, sender, sendResponse) {
-    if (request.type === 'FETCH_DATA') {
-      const query = `
+
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
+  if (request.type === "FETCH_DATA") {
+    const query = `
         query {
           creates(first: 5) {
             id
@@ -11,50 +10,51 @@ chrome.runtime.onMessage.addListener(
             sender
             arTxId
           }
-        }`;
+        }`
 
-      fetch("https://api.studio.thegraph.com/query/72269/bodhi_wtf/version/latest", {
-        method: 'POST',
+    fetch(
+      "https://api.studio.thegraph.com/query/72269/bodhi_wtf/version/latest",
+      {
+        method: "POST",
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
+          "Content-Type": "application/json",
+          Accept: "application/json"
         },
         body: JSON.stringify({ query })
-      })
-      .then(response => response.json())
-      .then(data => sendResponse({data}))
-      .catch(error => sendResponse({error: error.message}));
+      }
+    )
+      .then((response) => response.json())
+      .then((data) => sendResponse({ data }))
+      .catch((error) => sendResponse({ error: error.message }))
 
-      return true; // Keep the messaging channel open for the response
-    }
+    return true // Keep the messaging channel open for the response
   }
-);
-
+})
 
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
-  .catch((error) => console.error(error));
+  .catch((error) => console.error(error))
 
-  const TWITTER_ORIGIN = 'https://twitter.com';
+const TWITTER_ORIGIN = "https://twitter.com"
 
 chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
-  if (!tab.url) return;
-  const url = new URL(tab.url);
+  if (!tab.url) return
+  const url = new URL(tab.url)
   // Enables the side panel on google.com
   if (url.origin === TWITTER_ORIGIN) {
     await chrome.sidePanel.setOptions({
       tabId,
-      path: 'sidepanel.html',
+      path: "sidepanel.html",
       enabled: true
-    });
+    })
   } else {
     // Disables the side panel on all other sites
     await chrome.sidePanel.setOptions({
       tabId,
       enabled: false
-    });
+    })
   }
-});
+})
 
 // // Context Menue
 // function setupContextMenu() {
@@ -81,8 +81,6 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
 //   // Make sure the side panel is open.
 //   chrome.sidePanel.open({ tabId: tab.id });
 // });
-
-
 
 // const client = createClient({
 //   url: '/graphql', // This is a placeholder, actual requests are sent via background.ts

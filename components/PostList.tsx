@@ -5,15 +5,15 @@ import formatDistanceToNow from "date-fns/formatDistanceToNow"
 import type { ComponentProps } from "react"
 
 import { useStorage } from "@plasmohq/storage/hook"
+
 import PostCard from "./PostCard"
 
 export type Post = {
-  id: string,
-  assetId: string,
-  arxId: string,
+  id: string
+  assetId: string
+  arxId: string
   sender: string
 }
-
 
 interface PostListProps {
   items: Post[]
@@ -23,10 +23,10 @@ export function PostList({ items }: PostListProps) {
   const [selected, setSelected] = useStorage<string>("selectedPost", null)
 
   return (
-    <ScrollArea className="h-screen">
+    <ScrollArea>
       <div className="flex flex-col gap-2 p-4 pt-0">
         {items.map((item) => (
-          <PostCard post={item} key={item.id}/>
+          <PostCard post={item} key={item.id} />
         ))}
       </div>
     </ScrollArea>
