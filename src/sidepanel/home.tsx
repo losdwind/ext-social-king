@@ -7,6 +7,8 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { Search } from "lucide-react"
 import React, { useEffect, useState } from "react"
 
+import { sendToBackground } from "@plasmohq/messaging"
+
 import { LoginButton } from "./login"
 
 export function HomeTab() {
@@ -16,25 +18,30 @@ export function HomeTab() {
 
   useEffect(() => {
     setLoading(true)
-    chrome.runtime.sendMessage({ type: "FETCH_DATA" }, (response) => {
-      if (response.error) {
-        setError(response.error)
-        setLoading(false)
-      } else {
-        setPosts(
-          response.data.data.creates.map((post: any) => ({
-            id: post.id,
-            assetId: post.assetId,
-            arTxId: post.arTxId,
-            sender: post.sender
-          }))
-        )
-        setLoading(false)
-      }
-    })
-    console.log(posts)
-  }, [])
 
+    const getPosts = async () => {
+      setLoading(true)
+      const { posts, error } = await sendToBackground({
+        name: "getPosts",
+        body: {},
+        extensionId: process.env.PLASMO_EXTENSION_ID
+      })
+      setLoading(false)
+
+      if (error) {
+        setError(error)
+      }
+      setPosts(
+        posts.data.data.creates.map((post: any) => ({
+          id: post.id,
+          assetId: post.assetId,
+          arTxId: post.arTxId,
+          sender: post.sender
+        }))
+      )
+    }
+    getPosts()
+  }, [])
   if (loading) return <div>Loading...</div>
   if (error) return <div>Error: {error}</div>
 

@@ -7,11 +7,12 @@ import { type PlasmoCSConfig, type PlasmoGetInlineAnchorList } from "plasmo"
 import { useEffect, useState } from "react"
 import type { Address } from "viem"
 
+import { sendToBackground } from "@plasmohq/messaging"
+
 import { LoginButton } from "../sidepanel/login"
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://twitter.com/*"],
-  world: "MAIN"
+  matches: ["https://twitter.com/*"]
 }
 
 export const getStyle = () => {
@@ -34,79 +35,56 @@ export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
 //   { from: '0xA0Cf798816D4b9b9866b5330EEa46a18382f251e' },
 //   { onLogs(logs) { console.log(logs) } }
 // )
-const getBuyPrice = async (asset: number, share: number) => {
-  const queryOptions = { active: true, currentWindow: true }
-  const [tab] = await chrome.tabs.query(queryOptions)
-  if (tab.id) {
-    try {
-      const response = await chrome.tabs.sendMessage(tab.id, {
-        action: "getBuyPrice",
-        asset: asset,
-        share: share
-      })
-      console.log("get buy price", response)
-      return response
-    } catch (error) {
-      console.error("Error fetching buy price:", error)
-    }
-  }
+
+const getBuyPrice = async (asset, share) => {
+  const price = await sendToBackground({
+    name: "getLatestPrice",
+    body: {
+      asset: asset,
+      share: share * 1e18
+    },
+    extensionId: process.env.PLASMO_EXTENSION_ID
+  })
+  return price
 }
 
 const getPool = async (asset: number) => {
-  const queryOptions = { active: true, currentWindow: true }
-  const [tab] = await chrome.tabs.query(queryOptions)
-  if (tab.id) {
-    try {
-      const response = await chrome.tabs.sendMessage(tab.id, {
-        action: "getPool",
-        asset: asset
-      })
-      console.log("get pool", response)
-      return response
-    } catch (error) {
-      console.error("Error fetching pool", error)
-    }
-  }
+  const pool = await sendToBackground({
+    name: "getPool",
+    body: {
+      asset: asset
+    },
+    extensionId: process.env.PLASMO_EXTENSION_ID
+  })
+  return pool
 }
 
-const onBuyShare = async (asset: number, share: number) => {
-  const queryOptions = { active: true, currentWindow: true }
-  const [tab] = await chrome.tabs.query(queryOptions)
-  if (tab.id) {
-    try {
-      const response = await chrome.tabs.sendMessage(tab.id, {
-        action: "Buy",
-        asset: asset,
-        share: share
-      })
-      console.log("get pool", response)
-      return response
-    } catch (error) {
-      console.error("Error fetching pool", error)
-    }
-  }
+const onBuyShare = async (account: Address, asset: number, share: number) => {
+  await sendToBackground({
+    name: "onBuyShare",
+    body: {
+      account: account,
+      asset: asset,
+      share: share
+    },
+    extensionId: process.env.PLASMO_EXTENSION_ID
+  })
 }
 
-const onSellShare = async (asset: number, share: number) => {
-  const queryOptions = { active: true, currentWindow: true }
-  const [tab] = await chrome.tabs.query(queryOptions)
-  if (tab.id) {
-    try {
-      const response = await chrome.tabs.sendMessage(tab.id, {
-        action: "Sell",
-        asset: asset,
-        share: share
-      })
-      console.log("get pool", response)
-      return response
-    } catch (error) {
-      console.error("Error fetching pool", error)
-    }
-  }
+const onSellShare = async (account: Address, asset: number, share: number) => {
+  await sendToBackground({
+    name: "onSellShare",
+    body: {
+      account: account,
+      asset: asset,
+      share: share
+    },
+    extensionId: process.env.PLASMO_EXTENSION_ID
+  })
 }
 
 const PlasmoInline = () => {
-  const [share, setShare] = useState(1e18)
+  const [share, setShare] = useState(1)
   const [asset, setAsset] = useState(0)
   const [totalValue, setTotalValue] = useState("")
   const [price, setPrice] = useState("")
@@ -115,11 +93,13 @@ const PlasmoInline = () => {
   useEffect(() => {
     const fetch = async () => {
       // Automatically update the price and total value when shares change
-      const price = await getBuyPrice(asset, share * 1e18)
-      // console.log(`price ===> ${price}`)
 
-      const totalValue = await getPool(asset)
-      // console.log(`value ===> ${value}`)
+      const price = await getBuyPrice(asset, share)
+      console.log(`price ===> ${price}`)
+
+      const pool = await getPool(asset)
+
+      console.log(`value ===> ${pool}`)
 
       setPrice(price)
       setTotalValue(totalValue)
@@ -141,7 +121,7 @@ const PlasmoInline = () => {
           onClick={() => setShare((prevShare) => prevShare + 1)} // Correctly handle increment
           size="sm"
           variant="outline">
-          <Plus className="text-xs" />
+          <Plus className="text-xs font-thin" />
         </Button>
       </div>
       <div className="flex flex-row justify-center flex-1 gap-4 ">
@@ -157,13 +137,13 @@ const PlasmoInline = () => {
         <Button
           size="sm"
           variant="outline"
-          onClick={() => onBuyShare(asset, share)}>
+          onClick={() => onBuyShare(account, asset, share)}>
           Buy
         </Button>
         <Button
           size="sm"
           variant="outline"
-          onClick={() => onSellShare(asset, share)}>
+          onClick={() => onSellShare(account, asset, share)}>
           Sell
         </Button>
       </div>
