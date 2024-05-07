@@ -1,3 +1,4 @@
+import type internal from "stream"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import cssText from "data-text:~style.css"
@@ -6,12 +7,6 @@ import { type PlasmoCSConfig, type PlasmoGetInlineAnchorList } from "plasmo"
 import { useEffect, useState } from "react"
 import type { Address } from "viem"
 
-import {
-  getLatestPrice,
-  getLatestTotalValue,
-  onBuyShare,
-  onSellShare
-} from "../../lib/viem"
 import { LoginButton } from "../sidepanel/login"
 
 export const config: PlasmoCSConfig = {
@@ -39,6 +34,76 @@ export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
 //   { from: '0xA0Cf798816D4b9b9866b5330EEa46a18382f251e' },
 //   { onLogs(logs) { console.log(logs) } }
 // )
+const getBuyPrice = async (asset: number, share: number) => {
+  const queryOptions = { active: true, currentWindow: true }
+  const [tab] = await chrome.tabs.query(queryOptions)
+  if (tab.id) {
+    try {
+      const response = await chrome.tabs.sendMessage(tab.id, {
+        action: "getBuyPrice",
+        asset: asset,
+        share: share
+      })
+      console.log("get buy price", response)
+      return response
+    } catch (error) {
+      console.error("Error fetching buy price:", error)
+    }
+  }
+}
+
+const getPool = async (asset: number) => {
+  const queryOptions = { active: true, currentWindow: true }
+  const [tab] = await chrome.tabs.query(queryOptions)
+  if (tab.id) {
+    try {
+      const response = await chrome.tabs.sendMessage(tab.id, {
+        action: "getPool",
+        asset: asset
+      })
+      console.log("get pool", response)
+      return response
+    } catch (error) {
+      console.error("Error fetching pool", error)
+    }
+  }
+}
+
+const onBuyShare = async (asset: number, share: number) => {
+  const queryOptions = { active: true, currentWindow: true }
+  const [tab] = await chrome.tabs.query(queryOptions)
+  if (tab.id) {
+    try {
+      const response = await chrome.tabs.sendMessage(tab.id, {
+        action: "Buy",
+        asset: asset,
+        share: share
+      })
+      console.log("get pool", response)
+      return response
+    } catch (error) {
+      console.error("Error fetching pool", error)
+    }
+  }
+}
+
+const onSellShare = async (asset: number, share: number) => {
+  const queryOptions = { active: true, currentWindow: true }
+  const [tab] = await chrome.tabs.query(queryOptions)
+  if (tab.id) {
+    try {
+      const response = await chrome.tabs.sendMessage(tab.id, {
+        action: "Sell",
+        asset: asset,
+        share: share
+      })
+      console.log("get pool", response)
+      return response
+    } catch (error) {
+      console.error("Error fetching pool", error)
+    }
+  }
+}
 
 const PlasmoInline = () => {
   const [share, setShare] = useState(1e18)
@@ -50,14 +115,14 @@ const PlasmoInline = () => {
   useEffect(() => {
     const fetch = async () => {
       // Automatically update the price and total value when shares change
-      const price = await getLatestPrice(asset, share)
+      const price = await getBuyPrice(asset, share * 1e18)
       // console.log(`price ===> ${price}`)
 
-      const value = await getLatestTotalValue(asset)
+      const totalValue = await getPool(asset)
       // console.log(`value ===> ${value}`)
 
-      setPrice(price.toString())
-      setTotalValue(value.toString())
+      setPrice(price)
+      setTotalValue(totalValue)
     }
 
     fetch()
@@ -67,7 +132,7 @@ const PlasmoInline = () => {
     <div className="flex flex-row items-center flex-1 gap-2 p-2 pl-4">
       <div className="flex flex-row items-center gap-4">
         <Input
-          value={share.toString()} // Convert number to string for the input field
+          value={share} // Convert number to string for the input field
           onChange={(e) => setShare(Number(e.target.value))} // Convert input string back to number
           // placeholder="Enter shares"
           className="w-20 h-9"
@@ -76,7 +141,7 @@ const PlasmoInline = () => {
           onClick={() => setShare((prevShare) => prevShare + 1)} // Correctly handle increment
           size="sm"
           variant="outline">
-          <Plus className="text-xs font-medium" />
+          <Plus className="text-xs" />
         </Button>
       </div>
       <div className="flex flex-row justify-center flex-1 gap-4 ">
@@ -92,13 +157,13 @@ const PlasmoInline = () => {
         <Button
           size="sm"
           variant="outline"
-          onClick={() => onBuyShare(account, asset, share)}>
+          onClick={() => onBuyShare(asset, share)}>
           Buy
         </Button>
         <Button
           size="sm"
           variant="outline"
-          onClick={() => onSellShare(account, asset, share)}>
+          onClick={() => onSellShare(asset, share)}>
           Sell
         </Button>
       </div>

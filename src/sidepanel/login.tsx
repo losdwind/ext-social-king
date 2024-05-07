@@ -26,43 +26,13 @@ export function LoginButton() {
     if (tab.id) {
       try {
         const response = await chrome.tabs.sendMessage(tab.id, {
-          action: "WALLET_INFO"
+          action: "account"
         })
         console.log("Wallet info:", response)
       } catch (error) {
         console.error("Error fetching wallet info:", error)
       }
     }
-
-    // chrome.runtime.sendMessage({ type: "CONNECT_WALLET" }, (response) => {
-    //   if (response.error) {
-    //     setError(response.error)
-    //     setLoading(false)
-    //   } else {
-    //     setAccount(response.address)
-    //     setLoading(false)
-    //   }
-    // })
-  }
-
-  const sendTransaction = async () => {
-    if (!account) {
-      connect()
-    }
-
-    chrome.runtime.sendMessage(
-      { type: "SEND_TRANSACTION", account: account },
-      (response) => {
-        if (response.error) {
-          setError(response.error)
-          setLoading(false)
-        } else {
-          const result = response.data.result
-          console.log(result)
-          setLoading(false)
-        }
-      }
-    )
   }
 
   return account ? (
