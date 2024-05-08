@@ -32,7 +32,7 @@ export function HomeTab() {
         setError(error)
       }
       setPosts(
-        posts.data.data.creates.map((post: any) => ({
+        posts.map((post: any) => ({
           id: post.id,
           assetId: post.assetId,
           arTxId: post.arTxId,

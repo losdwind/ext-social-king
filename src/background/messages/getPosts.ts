@@ -24,9 +24,9 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
   )
     .then((response) => response.json())
     .then((data) => {
-      console.log("GraphQL response: ", data)
+      console.log("GraphQL response: ", data.data.creates)
       res.send({
-        posts: data
+        posts: data.data.creates
       })
     })
     .catch((error) => {
