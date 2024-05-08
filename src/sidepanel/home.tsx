@@ -47,7 +47,7 @@ export function HomeTab() {
 
   return (
     <TooltipProvider delayDuration={0}>
-      <div className="flex flex-col max-h-screen overflow-hidden">
+      <div className="h-full">
         <Tabs defaultValue="latest">
           <div className="flex items-center px-4 py-2">
             <LoginButton />

@@ -5,23 +5,30 @@
  */
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Link } from "react-router-dom"
+import { transactionType } from "viem"
 
-import type { Post } from "./PostList"
-import { Link} from "react-router-dom"
 import { AddressDisplay } from "./AddressDisplay"
+import ArweaveMarkdownViewer from "./ArweaveMarkdown"
+import type { Post } from "./PostList"
+
 interface PostProps {
   post: Post
 }
 
-export default function Post({post}:PostProps) {
+export default function Post({ post }: PostProps) {
+  console.log("post=====>", post)
   return (
-    <div className="bg-gray-100 dark:bg-gray-950 p-4 md:p-6 rounded-lg shadow-md overflow-auto max-h-[80vh]">
-      <ul className="space-y-4">
+    <div className="bg-gray-100 dark:bg-gray-950 p-4 md:p-6 rounded-lg  overflow-auto max-h-[80vh]">
+      <ul className="">
         <li>
-          <div className="max-w-md p-6 mx-auto bg-white rounded-lg shadow-md dark:bg-gray-950">
+          <div className="max-w-md mx-auto rounded-lg dark:bg-gray-950">
             <div className="flex items-center justify-between mb-4">
               <div className="text-sm text-gray-500 dark:text-gray-400">
-                <span className="font-medium"><AddressDisplay address={post.sender} /></span>| Post #${post.assetId}
+                <span className="font-medium">
+                  <AddressDisplay address={post.sender} />
+                </span>
+                | Post #${post.assetId}
                 {"\n                        "}
               </div>
               <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -37,7 +44,7 @@ export default function Post({post}:PostProps) {
                 designed to revolutionize the industry. Learn more about the
                 features and benefits...
               </p> */}
-              <img alt="arweave" style={{ width: '200px' }} src={`https://arweave.net/${post.arxId}`}/>
+              <ArweaveMarkdownViewer transactionId={post.arTxId} />
             </Link>
 
             <div className="flex items-center justify-between mb-4">

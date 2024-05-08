@@ -11,7 +11,7 @@ import PostCard from "./PostCard"
 export type Post = {
   id: string
   assetId: string
-  arxId: string
+  arTxId: string
   sender: string
 }
 

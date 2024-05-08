@@ -41,6 +41,8 @@
     "@radix-ui/react-toggle": "^1.0.3",
     "@radix-ui/react-toggle-group": "^1.0.4",
     "@radix-ui/react-tooltip": "^1.0.7",
+    "arweave": "^1.15.1",
+    "axios": "^1.6.8",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
@@ -55,6 +57,7 @@
     "react-day-picker": "^8.10.1",
     "react-dom": "18.2.0",
     "react-hook-form": "^7.51.3",
+    "react-markdown": "^9.0.1",
     "react-resizable-panels": "^2.0.18",
     "react-router-dom": "^6.23.0",
     "sonner": "^1.4.41",
@@ -72,9 +75,12 @@
     "@types/node": "20.11.5",
     "@types/react": "18.2.48",
     "@types/react-dom": "18.2.18",
+    "path-browserify": "^1.0.0",
     "postcss": "8.4.33",
     "prettier": "3.2.4",
-    "typescript": "5.3.3"
+    "process": "^0.11.10",
+    "typescript": "5.3.3",
+    "url": "^0.11.0"
   },
   "manifest": {
     "host_permissions": [
@@ -83,6 +89,9 @@
     "action": {
       "default_title": "Click to open Social King side panel"
     },
-    "permissions": ["tabs", "activeTab"]
+    "permissions": [
+      "tabs",
+      "activeTab"
+    ]
   }
 }
