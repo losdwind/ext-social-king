@@ -25,12 +25,10 @@ const publicClient = createPublicClient({
   )
 })
 
-const walletClient = createWalletClient({
-  chain: optimism as Chain,
-  transport:http(
-    "https://rpc.particle.network/evm-chain?chainId=1&projectUuid=5cf89b55-8b00-4c19-9844-7729a490a5a2&projectKey=cR2VL9YnJzoWbT2Zgow5W728kUecEuTciTpwKBQO"
-  )
-})
+// const walletClient = createWalletClient({
+//   chain: optimism as Chain,
+//   transport:custom(window.ethereum)
+// })
 
 // export const getWalletAddress = async () => {
 //   if (typeof window.ethereum !== "undefined") {
@@ -63,45 +61,45 @@ export const getPool = async (asset: number) => {
 }
 
 // Define these functions if they involve more complex logic
-export const onBuyShare = async (
-  account: Address,
-  asset: number,
-  share: number
-) => {
-  if (!account) {
-    const [account] = await walletClient.requestAddresses()
-    // setAccount(account)
-  }
-  const { request } = await publicClient.simulateContract({
-    account,
-    address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
-    abi: bodhiAbi,
-    functionName: "buy",
-    args: [BigInt(asset), BigInt(share)]
-  })
-  await walletClient.writeContract(request)
-  console.log("Buying shares")
-}
+// export const onBuyShare = async (
+//   account: Address,
+//   asset: number,
+//   share: number
+// ) => {
+//   if (!account) {
+//     const [account] = await walletClient.requestAddresses()
+//     // setAccount(account)
+//   }
+//   const { request } = await publicClient.simulateContract({
+//     account,
+//     address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
+//     abi: bodhiAbi,
+//     functionName: "buy",
+//     args: [BigInt(asset), BigInt(share)]
+//   })
+//   await walletClient.writeContract(request)
+//   console.log("Buying shares")
+// }
 
-export const onSellShare = async (
-  account: Address,
-  asset: number,
-  share: number
-) => {
-  if (!account) {
-    const [account] = await walletClient.requestAddresses()
-    // setAccount(account)
-  }
+// export const onSellShare = async (
+//   account: Address,
+//   asset: number,
+//   share: number
+// ) => {
+//   if (!account) {
+//     const [account] = await walletClient.requestAddresses()
+//     // setAccount(account)
+//   }
 
-  const { request } = await publicClient.simulateContract({
-    account,
-    address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
-    abi: bodhiAbi,
-    functionName: "sell",
-    args: [BigInt(asset), BigInt(share)]
-  })
+//   const { request } = await publicClient.simulateContract({
+//     account,
+//     address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
+//     abi: bodhiAbi,
+//     functionName: "sell",
+//     args: [BigInt(asset), BigInt(share)]
+//   })
 
-  await walletClient.writeContract(request)
-  console.log("Selling shares")
-}
+//   await walletClient.writeContract(request)
+//   console.log("Selling shares")
+// }
 

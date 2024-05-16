@@ -5,6 +5,9 @@ chrome.sidePanel
 
 const TWITTER_ORIGIN = "https://twitter.com"
 
+
+
+
 // chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
 //   if (!tab.url) return
 //   const url = new URL(tab.url)
