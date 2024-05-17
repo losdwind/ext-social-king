@@ -1,13 +1,23 @@
 // background.ts
-chrome.sidePanel
-  .setPanelBehavior({ openPanelOnActionClick: true })
-  .catch((error) => console.error(error))
 
-const TWITTER_ORIGIN = "https://twitter.com"
+// const TWITTER_ORIGIN = "https://twitter.com"
 
+// export {}
+// export {}
 
+// chrome.sidePanel
+//   .setPanelBehavior({ openPanelOnActionClick: true })
+//   .catch((error) => console.error(error))
 
+// console.log(
+//   "Live now; make now always the most precious time. Now will never come again."
+// )
+import "@plasmohq/messaging/background"
 
+import { startHub } from "@plasmohq/messaging/pub-sub"
+
+console.log(`BGSW - Starting Hub`)
+startHub()
 // chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
 //   if (!tab.url) return
 //   const url = new URL(tab.url)

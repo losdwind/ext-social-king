@@ -1,6 +1,6 @@
 import type { PlasmoMessaging } from "@plasmohq/messaging"
 
-import { getLatestPrice } from "~lib/viem"
+import { getLatestPrice } from "~core/viem"
 
 const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
   const buyPrice = await getLatestPrice(req.body.asset, req.body.share)
