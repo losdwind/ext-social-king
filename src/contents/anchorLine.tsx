@@ -1,34 +1,14 @@
-import type internal from "stream"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import cssText from "data-text:~style.css"
-import { Plus, PlusSquareIcon } from "lucide-react"
+import { Plus } from "lucide-react"
 import { type PlasmoCSConfig, type PlasmoGetInlineAnchorList } from "plasmo"
 import { useEffect, useState } from "react"
 
 import { sendToBackground } from "@plasmohq/messaging"
 
-import {
-  createPublicClient,
-  createWalletClient,
-  custom,
-  getAddress,
-  getContract,
-  http,
-  type Address,
-  type Chain,
-  type PublicClient,
-  type WalletClient
-} from "viem"
-import { optimism } from "viem/chains"
-
-import { Storage } from "@plasmohq/storage"
-
-import { bodhiAbi } from "~abi/bodhiAbi"
-
 export const config: PlasmoCSConfig = {
-  matches: ["https://twitter.com/*"],
-  world:"MAIN"
+  matches: ["https://twitter.com/*"]
 }
 
 export const getStyle = () => {
@@ -37,17 +17,16 @@ export const getStyle = () => {
   return style
 }
 
-const publicClient = createPublicClient({
-  chain: optimism as Chain,
-  transport: http(
-    "https://rpc.particle.network/evm-chain?chainId=1&projectUuid=5cf89b55-8b00-4c19-9844-7729a490a5a2&projectKey=cR2VL9YnJzoWbT2Zgow5W728kUecEuTciTpwKBQO"
-  )
-})
+// const publicClient = createPublicClient({
+//   chain: optimism as Chain,
+//   transport: http()
+// })
+// // "https://rpc.particle.network/evm-chain?chainId=1&projectUuid=5cf89b55-8b00-4c19-9844-7729a490a5a2&projectKey=cR2VL9YnJzoWbT2Zgow5W728kUecEuTciTpwKBQO"
 
-const walletClient = createWalletClient({
-  chain: optimism as Chain,
-  transport:custom(window.ethereum)
-})
+// const walletClient = createWalletClient({
+//   chain: optimism as Chain,
+//   transport: custom(window.ethereum)
+// })
 
 export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
   const anchors = document.querySelectorAll('article[role="article"]')
@@ -65,18 +44,30 @@ export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
 // )
 
 const getBuyPrice = async (asset, share) => {
+  console.log("getBuyPrice")
   const price = await sendToBackground({
     name: "getLatestPrice",
     body: {
       asset: asset,
       share: share * 1e18
     },
-    extensionId: process.env.PLASMO_EXTENSION_ID
+    // extensionId: process.env.PLASMO_EXTENSION_ID
   })
+
   return price
+
+  // const buyPrice = await publicClient.readContract({
+  //   address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
+  //   abi: bodhiAbi,
+  //   functionName: "getBuyPrice",
+  //   args: [BigInt(asset), BigInt(share * 10 ** 18)]
+  // })
+  // return buyPrice
 }
 
 const getPool = async (asset: number) => {
+  console.log("getPool")
+
   const pool = await sendToBackground({
     name: "getPool",
     body: {
@@ -85,59 +76,68 @@ const getPool = async (asset: number) => {
     extensionId: process.env.PLASMO_EXTENSION_ID
   })
   return pool
+  // const value = await publicClient.readContract({
+  //   address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
+  //   abi: bodhiAbi,
+  //   functionName: "pool",
+  //   args: [BigInt(asset)]
+  // })
+  // return value
 }
 
-const onBuyShare = async (account: Address, asset: number, share: number) => {
-  // await sendToBackground({
-  //   name: "onBuyShare",
-  //   body: {
-  //     account: account,
-  //     asset: asset,
-  //     share: share
-  //   },
-  //   extensionId: process.env.PLASMO_EXTENSION_ID
-  // })
-  if (!account) {
-    const [account] = await walletClient.requestAddresses()
-    // setAccount(account)
-  }
-  const { request } = await publicClient.simulateContract({
-    account,
-    address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
-    abi: bodhiAbi,
-    functionName: "buy",
-    args: [BigInt(asset), BigInt(share)]
+const onBuyShare = async (asset: number, share: number) => {
+  console.log("onBuyShare")
+
+  await sendToBackground({
+    name: "onBuyShare",
+    body: {
+      asset: asset,
+      share: share
+    },
+    extensionId: process.env.PLASMO_EXTENSION_ID
   })
-  await walletClient.writeContract(request)
-  console.log("Buying shares")
+  // if (!account) {
+  //   const [account] = await walletClient.requestAddresses()
+  //   // setAccount(account)
+  // }
+  // const { request } = await publicClient.simulateContract({
+  //   account,
+  //   address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
+  //   abi: bodhiAbi,
+  //   functionName: "buy",
+  //   args: [BigInt(asset), BigInt(share)]
+  // })
+  // await walletClient.writeContract(request)
+  // console.log("Buying shares")
 }
 
-const onSellShare = async (account: Address, asset: number, share: number) => {
-  // await sendToBackground({
-  //   name: "onSellShare",
-  //   body: {
-  //     account: account,
-  //     asset: asset,
-  //     share: share
-  //   },
-  //   extensionId: process.env.PLASMO_EXTENSION_ID
-  // })
+const onSellShare = async (asset: number, share: number) => {
+  console.log("onSellShare")
 
-  if (!account) {
-    const [account] = await walletClient.requestAddresses()
-    // setAccount(account)
-  }
-
-  const { request } = await publicClient.simulateContract({
-    account,
-    address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
-    abi: bodhiAbi,
-    functionName: "sell",
-    args: [BigInt(asset), BigInt(share)]
+  await sendToBackground({
+    name: "onSellShare",
+    body: {
+      asset: asset,
+      share: share
+    },
+    extensionId: process.env.PLASMO_EXTENSION_ID
   })
 
-  await walletClient.writeContract(request)
-  console.log("Selling shares")
+  // if (!account) {
+  //   const [account] = await walletClient.requestAddresses()
+  //   // setAccount(account)
+  // }
+
+  // const { request } = await publicClient.simulateContract({
+  //   account,
+  //   address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
+  //   abi: bodhiAbi,
+  //   functionName: "sell",
+  //   args: [BigInt(asset), BigInt(share)]
+  // })
+
+  // await walletClient.writeContract(request)
+  // console.log("Selling shares")
 }
 
 const PlasmoInline = () => {
@@ -157,7 +157,7 @@ const PlasmoInline = () => {
 
       console.log(`value ===> ${pool}`)
 
-      setPrice(price)
+      setPrice(price.toString())
       setTotalValue(totalValue)
     }
 
@@ -193,13 +193,13 @@ const PlasmoInline = () => {
         <Button
           size="sm"
           variant="outline"
-          onClick={() => onBuyShare(null, asset, share)}>
+          onClick={() => onBuyShare(asset, share)}>
           Buy
         </Button>
         <Button
           size="sm"
           variant="outline"
-          onClick={() => onSellShare(null, asset, share)}>
+          onClick={() => onSellShare(asset, share)}>
           Sell
         </Button>
       </div>

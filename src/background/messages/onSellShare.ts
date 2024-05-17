@@ -1,10 +1,12 @@
-// import type { PlasmoMessaging } from "@plasmohq/messaging"
+import { request } from "http"
 
-// import { onSellShare } from "~lib/viem"
+import type { PlasmoMessaging } from "@plasmohq/messaging"
 
-// const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
-//   await onSellShare(req.body.account, req.body.asset, req.body.share)
-//   res.send({})
-// }
+import { onSellShare } from "~core/viem"
 
-// export default handler
+const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
+  await onSellShare(req.body.account, req.body.asset, req.body.share)
+  res.send({})
+}
+
+export default handler
