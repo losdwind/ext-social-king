@@ -4,11 +4,14 @@ import cssText from "data-text:~style.css"
 import { Plus } from "lucide-react"
 import { type PlasmoCSConfig, type PlasmoGetInlineAnchorList } from "plasmo"
 import { useEffect, useState } from "react"
+import { bodhiAbi } from "~core/bodhiAbi"
 
+import { createPublicClient, createWalletClient, custom, http, type Chain, type WriteContractParameters } from "viem"
+import { optimism } from "viem/chains"
 import { sendToBackground } from "@plasmohq/messaging"
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://twitter.com/*"]
+  matches: ["https://twitter.com/*"],
 }
 
 export const getStyle = () => {
@@ -35,6 +38,14 @@ export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
   })
 }
 
+// const walletClient = createWalletClient({
+//   chain: optimism as Chain,
+//   transport: custom(window.ethereum)
+// })
+const publicClient = createPublicClient({
+  chain: optimism as Chain,
+  transport: http()
+})
 // // 2. Call contract methods, fetch events, listen to events, etc.
 // const result = await contract.read.totalSupply()
 // const logs = await contract.getEvents.Transfer()
@@ -45,102 +56,48 @@ export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
 
 const getBuyPrice = async (asset, share) => {
   console.log("getBuyPrice")
-  const price = await sendToBackground({
-    name: "getLatestPrice",
-    body: {
-      asset: asset,
-      share: share * 1e18
-    },
-    // extensionId: process.env.PLASMO_EXTENSION_ID
-  })
-
-  return price
-
-  // const buyPrice = await publicClient.readContract({
-  //   address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
-  //   abi: bodhiAbi,
-  //   functionName: "getBuyPrice",
-  //   args: [BigInt(asset), BigInt(share * 10 ** 18)]
+  // const price = await sendToBackground({
+  //   name: "getLatestPrice",
+  //   body: {
+  //     asset: asset,
+  //     share: share * 1e18
+  //   }
+  //   // extensionId: process.env.PLASMO_EXTENSION_ID
   // })
-  // return buyPrice
+
+  // return price
+
+  const buyPrice = await publicClient.readContract({
+    address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
+    abi: bodhiAbi,
+    functionName: "getBuyPrice",
+    args: [BigInt(asset), BigInt(share * 10 ** 18)]
+  })
+  return buyPrice
 }
 
 const getPool = async (asset: number) => {
   console.log("getPool")
 
-  const pool = await sendToBackground({
-    name: "getPool",
-    body: {
-      asset: asset
-    },
-    extensionId: process.env.PLASMO_EXTENSION_ID
-  })
-  return pool
-  // const value = await publicClient.readContract({
-  //   address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
-  //   abi: bodhiAbi,
-  //   functionName: "pool",
-  //   args: [BigInt(asset)]
+  // const pool = await sendToBackground({
+  //   name: "getPool",
+  //   body: {
+  //     asset: asset
+  //   },
+  //   extensionId: process.env.PLASMO_EXTENSION_ID
   // })
-  // return value
+  // return pool
+  const value = await publicClient.readContract({
+    address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
+    abi: bodhiAbi,
+    functionName: "pool",
+    args: [BigInt(asset)]
+  })
+  return value
 }
 
-const onBuyShare = async (asset: number, share: number) => {
-  console.log("onBuyShare")
 
-  await sendToBackground({
-    name: "onBuyShare",
-    body: {
-      asset: asset,
-      share: share
-    },
-    extensionId: process.env.PLASMO_EXTENSION_ID
-  })
-  // if (!account) {
-  //   const [account] = await walletClient.requestAddresses()
-  //   // setAccount(account)
-  // }
-  // const { request } = await publicClient.simulateContract({
-  //   account,
-  //   address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
-  //   abi: bodhiAbi,
-  //   functionName: "buy",
-  //   args: [BigInt(asset), BigInt(share)]
-  // })
-  // await walletClient.writeContract(request)
-  // console.log("Buying shares")
-}
-
-const onSellShare = async (asset: number, share: number) => {
-  console.log("onSellShare")
-
-  await sendToBackground({
-    name: "onSellShare",
-    body: {
-      asset: asset,
-      share: share
-    },
-    extensionId: process.env.PLASMO_EXTENSION_ID
-  })
-
-  // if (!account) {
-  //   const [account] = await walletClient.requestAddresses()
-  //   // setAccount(account)
-  // }
-
-  // const { request } = await publicClient.simulateContract({
-  //   account,
-  //   address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
-  //   abi: bodhiAbi,
-  //   functionName: "sell",
-  //   args: [BigInt(asset), BigInt(share)]
-  // })
-
-  // await walletClient.writeContract(request)
-  // console.log("Selling shares")
-}
-
-const PlasmoInline = () => {
+const Price = () => {
   const [share, setShare] = useState(1)
   const [asset, setAsset] = useState(0)
   const [totalValue, setTotalValue] = useState("")
@@ -150,14 +107,14 @@ const PlasmoInline = () => {
     const fetch = async () => {
       // Automatically update the price and total value when shares change
 
-      const price = await getBuyPrice(asset, share)
+      const currentPrice = await getBuyPrice(asset, share)
       console.log(`price ===> ${price}`)
 
       const pool = await getPool(asset)
 
       console.log(`value ===> ${pool}`)
 
-      setPrice(price.toString())
+      setPrice(currentPrice.toString())
       setTotalValue(totalValue)
     }
 
@@ -189,21 +146,7 @@ const PlasmoInline = () => {
           </div>
         </div>
       </div>
-      <div className="flex flex-row gap-2 ">
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => onBuyShare(asset, share)}>
-          Buy
-        </Button>
-        <Button
-          size="sm"
-          variant="outline"
-          onClick={() => onSellShare(asset, share)}>
-          Sell
-        </Button>
-      </div>
     </div>
   )
 }
-export default PlasmoInline
+export default Price
