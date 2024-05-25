@@ -13,7 +13,7 @@ const getLatestPrice = async (asset: number, share: number) => {
     address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
     abi: bodhiAbi,
     functionName: "getBuyPrice",
-    args: [BigInt(asset), BigInt(share * 10 ** 18)]
+    args: [BigInt(asset), BigInt(share)]
   })
   return buyPrice
 }

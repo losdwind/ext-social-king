@@ -6,7 +6,7 @@ import { type PlasmoCSConfig, type PlasmoGetInlineAnchorList } from "plasmo"
 import { useEffect, useState } from "react"
 import { bodhiAbi } from "~core/bodhiAbi"
 
-import { createPublicClient, createWalletClient, custom, http, type Chain, type WriteContractParameters } from "viem"
+import { createPublicClient, createWalletClient, custom, formatEther, http, parseEther, verifyMessage, type Chain, type WriteContractParameters } from "viem"
 import { optimism } from "viem/chains"
 import { sendToBackground } from "@plasmohq/messaging"
 
@@ -20,16 +20,6 @@ export const getStyle = () => {
   return style
 }
 
-// const publicClient = createPublicClient({
-//   chain: optimism as Chain,
-//   transport: http()
-// })
-// // "https://rpc.particle.network/evm-chain?chainId=1&projectUuid=5cf89b55-8b00-4c19-9844-7729a490a5a2&projectKey=cR2VL9YnJzoWbT2Zgow5W728kUecEuTciTpwKBQO"
-
-// const walletClient = createWalletClient({
-//   chain: optimism as Chain,
-//   transport: custom(window.ethereum)
-// })
 
 export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
   const anchors = document.querySelectorAll('article[role="article"]')
@@ -38,62 +28,31 @@ export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
   })
 }
 
-// const walletClient = createWalletClient({
-//   chain: optimism as Chain,
-//   transport: custom(window.ethereum)
-// })
 const publicClient = createPublicClient({
   chain: optimism as Chain,
   transport: http()
 })
-// // 2. Call contract methods, fetch events, listen to events, etc.
-// const result = await contract.read.totalSupply()
-// const logs = await contract.getEvents.Transfer()
-// const unwatch = contract.watchEvent.Transfer(
-//   { from: '0xA0Cf798816D4b9b9866b5330EEa46a18382f251e' },
-//   { onLogs(logs) { console.log(logs) } }
-// )
 
 const getBuyPrice = async (asset, share) => {
   console.log("getBuyPrice")
-  // const price = await sendToBackground({
-  //   name: "getLatestPrice",
-  //   body: {
-  //     asset: asset,
-  //     share: share * 1e18
-  //   }
-  //   // extensionId: process.env.PLASMO_EXTENSION_ID
-  // })
-
-  // return price
-
   const buyPrice = await publicClient.readContract({
     address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
     abi: bodhiAbi,
     functionName: "getBuyPrice",
-    args: [BigInt(asset), BigInt(share * 10 ** 18)]
+    args: [BigInt(asset), parseEther(share.toString())]
   })
-  return buyPrice
+  return formatEther(buyPrice)
 }
 
 const getPool = async (asset: number) => {
   console.log("getPool")
-
-  // const pool = await sendToBackground({
-  //   name: "getPool",
-  //   body: {
-  //     asset: asset
-  //   },
-  //   extensionId: process.env.PLASMO_EXTENSION_ID
-  // })
-  // return pool
   const value = await publicClient.readContract({
     address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
     abi: bodhiAbi,
     functionName: "pool",
     args: [BigInt(asset)]
   })
-  return value
+  return formatEther(value)
 }
 
 
@@ -108,14 +67,9 @@ const Price = () => {
       // Automatically update the price and total value when shares change
 
       const currentPrice = await getBuyPrice(asset, share)
-      console.log(`price ===> ${price}`)
-
       const pool = await getPool(asset)
-
-      console.log(`value ===> ${pool}`)
-
-      setPrice(currentPrice.toString())
-      setTotalValue(totalValue)
+      setPrice(currentPrice)
+      setTotalValue(pool)
     }
 
     fetch()
@@ -126,8 +80,7 @@ const Price = () => {
       <div className="flex flex-row items-center gap-4">
         <Input
           value={share} // Convert number to string for the input field
-          onChange={(e) => setShare(Number(e.target.value))} // Convert input string back to number
-          // placeholder="Enter shares"
+          onChange={(e) => setShare(Number(e.target.value))} 
           className="w-20 h-9"
         />
         <Button
@@ -138,9 +91,9 @@ const Price = () => {
         </Button>
       </div>
       <div className="flex flex-row justify-center flex-1 gap-4 ">
-        <div className="text-xl font-medium">${totalValue}</div>
+        <div className="text-xl font-medium">{parseFloat(totalValue).toFixed(4)}ETH</div>
         <div className="text-xs font-light">
-          <div>${price}</div>
+          <div>{parseFloat(price).toFixed(4)} ETH</div>
           <div>
             for {share} share{share !== 1 ? "s" : ""}
           </div>

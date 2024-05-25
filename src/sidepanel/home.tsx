@@ -9,12 +9,21 @@ import React, { useEffect, useState } from "react"
 
 import { sendToBackground } from "@plasmohq/messaging"
 
+import { storage } from "~sidepanel"
+
 import { LoginButton } from "./login"
 
 export function HomeTab() {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
+  const [account, setAccount] = useState("")
+
+  storage.watch({
+    account: (c) => {
+      setAccount(c.newValue)
+    }
+  })
 
   useEffect(() => {
     setLoading(true)
@@ -31,19 +40,19 @@ export function HomeTab() {
       if (error) {
         setError(error)
       }
-      setPosts(
-        posts.map((post: any) => ({
-          id: post.id,
-          assetId: post.assetId,
-          arTxId: post.arTxId,
-          sender: post.sender
-        }))
-      )
+
+      const formatedPosts = posts.map((post: any) => ({
+        id: post.id,
+        assetId: post.assetId,
+        arTxId: post.arTxId,
+        sender: post.sender
+      }))
+      setPosts(formatedPosts)
     }
     getPosts()
   }, [])
-  if (loading) return <div>Loading...</div>
-  if (error) return <div>Error: {error}</div>
+  if (loading) return <div className="m-auto">Loading...</div>
+  if (error) return <div className="m-auto">Error: {error}</div>
 
   return (
     <TooltipProvider delayDuration={0}>
