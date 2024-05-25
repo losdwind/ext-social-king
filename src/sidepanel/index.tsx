@@ -1,19 +1,13 @@
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-
 import "~style.css"
 
 import { MemoryRouter, Route, Routes } from "react-router-dom"
-import {
-  cacheExchange,
-  createClient,
-  fetchExchange,
-  Provider,
-  useQuery
-} from "urql"
 
+import { Storage } from "@plasmohq/storage"
+
+import { Detail } from "./detail"
 import { HomeTab } from "./home"
-import { LoginButton } from "./login"
-import { Detail } from "./postDetail"
+
+export const storage = new Storage()
 
 function IndexSidePanel() {
   return (

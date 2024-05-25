@@ -9,7 +9,7 @@ import { Link } from "react-router-dom"
 import { transactionType } from "viem"
 
 import { AddressDisplay } from "./AddressDisplay"
-import ArweaveMarkdownViewer from "./ArweaveMarkdown"
+import ContentViewer from "./ContentViewer"
 import type { Post } from "./PostList"
 
 interface PostProps {
@@ -17,7 +17,6 @@ interface PostProps {
 }
 
 export default function Post({ post }: PostProps) {
-  console.log("post=====>", post)
   return (
     <div className="bg-gray-100 dark:bg-gray-950 p-4 md:p-6 rounded-lg  overflow-auto max-h-[80vh]">
       <ul className="">
@@ -35,18 +34,10 @@ export default function Post({ post }: PostProps) {
                 April 27, 2024
               </div>
             </div>
-            <Link className="block mb-4" to={`/detail/${post.id}`}>
-              {/* <h2 className="mb-2 text-xl font-bold">
-                Introducing our new product line
-              </h2>
-              <p className="text-gray-700 dark:text-gray-300">
-                We're excited to announce the launch of our latest product line,
-                designed to revolutionize the industry. Learn more about the
-                features and benefits...
-              </p> */}
-              <ArweaveMarkdownViewer transactionId={post.arTxId} />
+            <Link className="block mb-4" to={`/detail/${post.arTxId}`}>
+              <ContentViewer transactionId={post.arTxId} />
             </Link>
-
+{/* 
             <div className="flex items-center justify-between mb-4">
               <div className="font-medium text-gray-700 dark:text-gray-300">
                 Current Value: $1,250
@@ -63,7 +54,7 @@ export default function Post({ post }: PostProps) {
               />
               <Button variant="default">Buy</Button>
               <Button variant="secondary">Sell</Button>
-            </div>
+            </div> */}
           </div>
         </li>
       </ul>
