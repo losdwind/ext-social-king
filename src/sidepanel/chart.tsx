@@ -12,7 +12,7 @@ import React from "react"
 export default function Chart() {
   return (
     <div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 p-4 md:grid-cols-2 lg:grid-cols-4">
         {/* Market Cap*/}
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -110,9 +110,7 @@ export default function Chart() {
             </p>
           </CardContent>
         </Card>
-      </div>
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-        <Card className="col-span-4">
+        <Card>
           <CardHeader>
             <CardTitle>Trades</CardTitle>
           </CardHeader>
@@ -120,7 +118,7 @@ export default function Chart() {
             <Overview />
           </CardContent>
         </Card>
-        <Card className="col-span-3">
+        <Card>
           <CardHeader>
             <CardTitle>Top Holders</CardTitle>
             <CardDescription>

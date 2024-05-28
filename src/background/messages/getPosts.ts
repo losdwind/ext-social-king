@@ -3,7 +3,7 @@ import type { PlasmoMessaging } from "@plasmohq/messaging"
 const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
   const query = `
       query {
-        creates(first: 5) {
+        creates(first: 15) {
           id
           assetId
           sender

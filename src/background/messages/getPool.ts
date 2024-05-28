@@ -1,16 +1,20 @@
-import type { PlasmoMessaging } from "@plasmohq/messaging"
-import { createPublicClient, http } from "viem"
+import { createPublicClient, http, toHex } from "viem"
 import { optimism, type Chain } from "viem/chains"
+
+import type { PlasmoMessaging } from "@plasmohq/messaging"
+
 import { bodhiAbi } from "~core/bodhiAbi"
 
 const publicClient = createPublicClient({
   chain: optimism as Chain,
-  transport: http("https://opt-mainnet.g.alchemy.com/v2/0p_oTmDooWT0yBlTN3nZf3p45XHZhkE_")
+  transport: http(
+    "https://opt-mainnet.g.alchemy.com/v2/0p_oTmDooWT0yBlTN3nZf3p45XHZhkE_"
+  )
 })
 
 const getPool = async (asset: number) => {
   const value = await publicClient.readContract({
-    address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
+    address: toHex(process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS),
     abi: bodhiAbi,
     functionName: "pool",
     args: [BigInt(asset)]

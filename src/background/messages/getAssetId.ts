@@ -1,4 +1,4 @@
-import { createPublicClient, http, toHex } from "viem"
+import { createPublicClient, http, stringToBytes, toBytes, toHex } from "viem"
 import { optimism, type Chain } from "viem/chains"
 
 import type { PlasmoMessaging } from "@plasmohq/messaging"
@@ -12,20 +12,20 @@ const publicClient = createPublicClient({
   )
 })
 
-const getLatestPrice = async (asset: number, share: number) => {
-  const buyPrice = await publicClient.readContract({
+const getAssetId = async (txId: string) => {
+  const assetId = await publicClient.readContract({
     address: toHex(process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS),
     abi: bodhiAbi,
-    functionName: "getBuyPrice",
-    args: [BigInt(asset), BigInt(share)]
+    functionName: "txToAssetId",
+    args: [toHex(txId)]
   })
-  return buyPrice
+  return assetId
 }
 
 const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
-  const buyPrice = await getLatestPrice(req.body.asset, req.body.share)
+  const assetId = await getAssetId(req.body.txId)
   res.send({
-    buyPrice
+    assetId
   })
 }
 

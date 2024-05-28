@@ -1,8 +1,9 @@
-import { time } from "console"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import getTx from "@/lib/getTx"
+// import Arweave from "arweave"
 import cssText from "data-text:~style.css"
-import { Plus } from "lucide-react"
+import { validate } from "graphql"
 import {
   type PlasmoCSConfig,
   type PlasmoCSUIProps,
@@ -16,15 +17,21 @@ import {
   custom,
   http,
   parseEther,
+  toHex,
   type Chain,
   type WriteContractParameters
 } from "viem"
-import { optimism } from "viem/chains"
+import { optimism, sepolia } from "viem/chains"
 
-import { sendToBackground } from "@plasmohq/messaging"
+import { sendToBackground, sendToBackgroundViaRelay } from "@plasmohq/messaging"
 
 import { bodhiAbi } from "~core/bodhiAbi"
 
+// const arweave = Arweave.init({
+//   // host: "arweave.net",
+//   // port: 443,
+//   // protocol: "https"
+// })
 export const config: PlasmoCSConfig = {
   matches: ["https://twitter.com/*"],
   world: "MAIN"
@@ -39,20 +46,9 @@ export const getStyle = () => {
 export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
   const anchors = document.querySelectorAll('article[role="article"]')
   return Array.from(anchors).map((element) => {
-    const username = "username"
-    return { element, insertPosition: "afterend", data: { username } }
+    return { element, insertPosition: "afterend" }
   })
 }
-// export const getShadowHostId: PlasmoGetShadowHostId = ({ element }) =>
-//   element.getAttribute("data-custom-id") + `-pollax-iv`
-
-// export const getRootContainer = () =>
-//   document.querySelector('article[role="article"]')
-// document.querySelector('[data-testid="tweet"]');
-
-// Use this to optimize unmount lookups
-// export const getShadowHostId = () =>
-//   `plasmo-inline-example-unique-id-${tweet.username}`
 
 const walletClient = createWalletClient({
   chain: optimism as Chain,
@@ -63,40 +59,110 @@ var globalAccount = null
 
 const onRequestAccount = async () => {
   console.log("onRequestAccount")
+  await walletClient.switchChain({ id: sepolia.id })
   const [account] = await walletClient.requestAddresses()
   globalAccount = account
-  await sendToBackground({
-    name: "syncAccount",
-    body: {
-      account: account
-    },
-    extensionId: process.env.PLASMO_EXTENSION_ID
-  })
+  // await sendToBackground({
+  //   name: "syncAccount",
+  //   body: {
+  //     account: account
+  //   },
+  //   extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
+  // })
 }
 
-const onBuyShare = async (asset: number, share: number) => {
-  console.log("onBuyShare")
-
-  // await sendToBackground({
-  //   name: "onBuyShare",
+const onRequestTxId = async (tweet) => {
+  // const txId = await sendToBackground({
+  //   name: "getTxId",
   //   body: {
-  //     asset: asset,
-  //     share: share
+  //     tags: [
+  //       { name: "App-Name", value: "Bodhi" },
+  //       { name: "app-name", value: "SocialKing" },
+  //       { name: "author-platform", value: "twitter" },
+  //       { name: "author-username", value: tweet.username },
+  //       { name: "timestamp", value: tweet.timestamp },
+  //       { name: "creator", value: globalAccount }
+  //     ]
   //   },
-  //   extensionId: process.env.PLASMO_EXTENSION_ID
+  //   extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
   // })
+  const txId = await sendToBackgroundViaRelay({
+    name: "getTxId",
+    body: {
+      tags: [
+        { name: "App-Name", value: "Bodhi" },
+        { name: "app-name", value: "SocialKing" },
+        { name: "author-platform", value: "twitter" },
+        { name: "author-username", value: tweet.username },
+        { name: "timestamp", value: tweet.timestamp },
+        { name: "creator", value: globalAccount }
+      ]
+    }
+  })
+  return txId
+}
 
+const onRequestAssetId = async (txId: string) => {
+  const assetId = await sendToBackground({
+    name: "getAssetId",
+    body: {
+      txId: txId
+    },
+    extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
+  })
+  return assetId
+}
+
+const uploadAsset = async (tweet: Tweet) => {
+  const irysTxId = await sendToBackground({
+    name: "uploadAsset",
+    body: {
+      data: tweet.tweetURL,
+      tags: [
+        { name: "App-Name", value: "Bodhi" },
+        { name: "app-name", value: "SocialKing" },
+        { name: "author-platform", value: "twitter" },
+        { name: "author-username", value: tweet.username },
+        { name: "timestamp", value: tweet.timestamp },
+        { name: "creator", value: globalAccount }
+      ]
+    },
+    extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
+  })
+  return irysTxId
+}
+
+const onBuyShare = async (asset: number, share: number, tweet: Tweet) => {
+  console.log("onBuyShare")
   if (!globalAccount) {
     await onRequestAccount()
   }
+  console.log("globalAccount",globalAccount)
+  const res = await onRequestTxId(tweet)
+
+  if (!res.txId) {
+    const txId = await uploadAsset(tweet)
+    console.log("upload asset", txId)
+    const createResult = await walletClient.writeContract({
+      address: toHex(process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS),
+      abi: bodhiAbi,
+      functionName: "create",
+      args: [txId],
+      account: globalAccount
+    })
+    console.log("create Result", createResult)
+  }
+
+  await onRequestAssetId(res.txId)
 
   await walletClient.writeContract({
-    address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
+    address: toHex(process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS),
     abi: bodhiAbi,
     functionName: "buy",
     args: [BigInt(asset), parseEther(share.toString())],
     account: globalAccount
   })
+
   console.log("Buying shares")
 }
 
@@ -107,7 +173,7 @@ const onSellShare = async (asset: number, share: number) => {
   }
 
   await walletClient.writeContract({
-    address: "0x2AD82A4E39Bac43A54DdfE6f94980AAf0D1409eF",
+    address: toHex(process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS),
     abi: bodhiAbi,
     functionName: "sell",
     args: [BigInt(asset), parseEther(share.toString())],
@@ -115,6 +181,8 @@ const onSellShare = async (asset: number, share: number) => {
   })
   console.log("Selling shares")
 }
+
+// txToAssetId
 
 function extractTweetData(tweetElement): Tweet {
   // Extracting username (@ handle)
@@ -152,7 +220,6 @@ const BuySell: FC<PlasmoCSUIProps> = ({ anchor }) => {
   useEffect(() => {
     const tweet = extractTweetData(anchor.element)
     setTweet(tweet)
-    console.log(tweet)
   }, [])
 
   return (
@@ -161,7 +228,7 @@ const BuySell: FC<PlasmoCSUIProps> = ({ anchor }) => {
         <Button
           size="sm"
           variant="outline"
-          onClick={() => onBuyShare(asset, share)}>
+          onClick={() => onBuyShare(asset, share, tweet)}>
           Buy
         </Button>
         <Button
