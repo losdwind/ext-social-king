@@ -13,6 +13,8 @@ import { storage } from "~sidepanel"
 
 import { LoginButton } from "./login"
 
+// import a from "data-base64:~assets/avatars/a.png"
+
 export function HomeTab() {
   const [posts, setPosts] = useState<Post[]>([])
   const [loading, setLoading] = useState(false)
@@ -51,15 +53,19 @@ export function HomeTab() {
     }
     getPosts()
   }, [])
-  if (loading) return <div className="m-auto">Loading...</div>
-  if (error) return <div className="m-auto">Error: {error}</div>
+  // if (loading) return <div className="flex m-auto">Loading...</div>
+  // if (error) return <div className="flex m-auto">Error: {error}</div>
 
   return (
     <TooltipProvider delayDuration={0}>
       <div className="h-full">
         <Tabs defaultValue="latest">
           <div className="flex items-center px-4 py-2">
-            <LoginButton />
+            {/* <LoginButton /> */}
+            <Avatar>
+              <AvatarImage src={""} alt="Image" />
+              <AvatarFallback>SK</AvatarFallback>
+            </Avatar>
             <TabsList className="ml-auto">
               <TabsTrigger
                 value="latest"
@@ -67,9 +73,14 @@ export function HomeTab() {
                 Latest
               </TabsTrigger>
               <TabsTrigger
-                value="top"
+                value="hot"
                 className="text-zinc-600 dark:text-zinc-200">
-                Top
+                Hot
+              </TabsTrigger>
+              <TabsTrigger
+                value="king"
+                className="text-zinc-600 dark:text-zinc-200">
+                King
               </TabsTrigger>
             </TabsList>
           </div>
@@ -85,8 +96,11 @@ export function HomeTab() {
           <TabsContent value="latest" className="m-0">
             <PostList items={posts} />
           </TabsContent>
-          <TabsContent value="top" className="m-0">
-            <PostList items={posts.filter((item) => item)} />
+          <TabsContent value="hot" className="m-0">
+            <PostList items={posts.reverse()} />
+          </TabsContent>
+          <TabsContent value="king" className="m-0">
+            <PostList items={posts.slice(-3)} />
           </TabsContent>
         </Tabs>
       </div>
