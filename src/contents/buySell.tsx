@@ -103,18 +103,18 @@ const onRequestTxId = async (tweet) => {
 }
 
 const onRequestAssetId = async (txId: string) => {
-  const assetId = await sendToBackground({
+  const assetId = await sendToBackgroundViaRelay({
     name: "getAssetId",
     body: {
       txId: txId
     },
-    extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
+    // extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
   })
   return assetId
 }
 
 const uploadAsset = async (tweet: Tweet) => {
-  const irysTxId = await sendToBackground({
+  const irysTxId = await sendToBackgroundViaRelay({
     name: "uploadAsset",
     body: {
       data: tweet.tweetURL,
@@ -127,7 +127,7 @@ const uploadAsset = async (tweet: Tweet) => {
         { name: "creator", value: globalAccount }
       ]
     },
-    extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
+    // extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
   })
   return irysTxId
 }
@@ -139,7 +139,7 @@ const onBuyShare = async (asset: number, share: number, tweet: Tweet) => {
   }
   console.log("globalAccount",globalAccount)
   const res = await onRequestTxId(tweet)
-
+  console.log("res", res)
   if (!res.txId) {
     const txId = await uploadAsset(tweet)
     console.log("upload asset", txId)
