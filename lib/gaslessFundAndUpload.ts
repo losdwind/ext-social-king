@@ -22,6 +22,7 @@ async function gaslessFundAndUploadString(data: string, tags: Tag[]): Promise<st
  */
 const gaslessFundAndUploadData= async (data: string, tags: Tag[]): Promise<string> => {
 	// obtain the server's public key
+	console.log("gasless Fund and upload data", data, tags)
 	const pubKeyRes = (await (await fetch(`${process.env.PLASMO_PUBLIC_BACKEND}/api/publicKey`)).json()) as unknown as {
 		pubKey: string;
 	};

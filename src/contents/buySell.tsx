@@ -1,6 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import getTx from "@/lib/getTx"
+import Query from "@irys/query"
 // import Arweave from "arweave"
 import cssText from "data-text:~style.css"
 import { validate } from "graphql"
@@ -71,7 +72,15 @@ const onRequestAccount = async () => {
   // })
 }
 
-const onRequestTxId = async (tweet) => {
+const onRequestTxId = async (tweet: Tweet) => {
+  const tags = [
+    { name: "App-Name", value: "Bodhi" },
+    { name: "app-name", value: "SocialKing" },
+    { name: "author-platform", value: "twitter" },
+    { name: "author-username", value: tweet.username },
+    { name: "timestamp", value: tweet.timestamp },
+    { name: "creator", value: globalAccount }
+  ]
   // const txId = await sendToBackground({
   //   name: "getTxId",
   //   body: {
@@ -86,48 +95,47 @@ const onRequestTxId = async (tweet) => {
   //   },
   //   extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
   // })
-  const txId = await sendToBackgroundViaRelay({
+  const txId = await sendToBackground({
     name: "getTxId",
     body: {
-      tags: [
-        { name: "App-Name", value: "Bodhi" },
-        { name: "app-name", value: "SocialKing" },
-        { name: "author-platform", value: "twitter" },
-        { name: "author-username", value: tweet.username },
-        { name: "timestamp", value: tweet.timestamp },
-        { name: "creator", value: globalAccount }
-      ]
-    }
+      tags: tags
+    },
+    extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
+
   })
+  console.log("txId", txId)
+
   return txId
+  // return txId
 }
 
 const onRequestAssetId = async (txId: string) => {
-  const assetId = await sendToBackgroundViaRelay({
+  const assetId = await sendToBackground({
     name: "getAssetId",
     body: {
       txId: txId
     },
-    // extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
+    extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
   })
   return assetId
 }
 
 const uploadAsset = async (tweet: Tweet) => {
+  console.log("call uploadAsset")
   const irysTxId = await sendToBackgroundViaRelay({
     name: "uploadAsset",
     body: {
-      data: tweet.tweetURL,
-      tags: [
-        { name: "App-Name", value: "Bodhi" },
-        { name: "app-name", value: "SocialKing" },
-        { name: "author-platform", value: "twitter" },
-        { name: "author-username", value: tweet.username },
-        { name: "timestamp", value: tweet.timestamp },
-        { name: "creator", value: globalAccount }
-      ]
-    },
-    // extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
+      tweet: tweet
+      // data: tweet.tweetURL,
+      // tags: [
+      //   { name: "App-Name", value: "Bodhi" },
+      //   { name: "app-name", value: "SocialKing" },
+      //   { name: "author-platform", value: "twitter" },
+      //   { name: "author-username", value: tweet.username },
+      //   { name: "timestamp", value: tweet.timestamp },
+      //   // { name: "creator", value: globalAccount }
+      // ]
+    }
   })
   return irysTxId
 }
@@ -137,10 +145,11 @@ const onBuyShare = async (asset: number, share: number, tweet: Tweet) => {
   if (!globalAccount) {
     await onRequestAccount()
   }
-  console.log("globalAccount",globalAccount)
+  console.log("globalAccount", globalAccount)
   const res = await onRequestTxId(tweet)
   console.log("res", res)
   if (!res.txId) {
+    console.log("before call upload asset")
     const txId = await uploadAsset(tweet)
     console.log("upload asset", txId)
     const createResult = await walletClient.writeContract({
@@ -236,6 +245,9 @@ const BuySell: FC<PlasmoCSUIProps> = ({ anchor }) => {
           variant="outline"
           onClick={() => onSellShare(asset, share)}>
           Sell
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => uploadAsset(tweet)}>
+          upload
         </Button>
       </div>
     </div>

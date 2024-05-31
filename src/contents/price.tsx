@@ -92,6 +92,14 @@ const getPool = async (asset: number) => {
   return formatEther(value)
 }
 
+const testAccount = async () => {
+  const account = await sendToBackground({
+    name: "testMainWorld",
+    extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
+  })
+  return account
+}
+
 type Tweet = {
   username: string
   timestamp: string
@@ -131,7 +139,6 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
     const fetch = async () => {
       // Automatically update the price and total value when shares change
       const tweet = extractTweetData(anchor.element)
-      console.log(tweet)
       setTweet(tweet)
       const res = await onRequestTxId(tweet)
 
@@ -160,6 +167,14 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
           size="sm"
           variant="outline">
           <Plus className="text-xs font-thin" />
+        </Button>
+        <Button
+          onClick={async () => {
+            const account = await testAccount()
+            console.log("account", account)
+            return account
+          }}>
+          Test Account Link
         </Button>
       </div>
       <div className="flex flex-row justify-center flex-1 gap-4 ">
