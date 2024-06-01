@@ -1,4 +1,3 @@
-
 import type { PlasmoMessaging } from "@plasmohq/messaging"
 
 const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
@@ -6,10 +5,12 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
   const network = process.env.NEXT_PUBLIC_NETWORK || "devnet"
   console.log(req.body)
 
-  const fetchTx = async (tags:{
-    name: string;
-    value: any;
-}[]) => {
+  const fetchTx = async (
+    tags: {
+      name: string
+      value: any
+    }[]
+  ) => {
     const query = `
       query getTags{
         transactions(tags: ${JSON.stringify(tags).replace(/"([^(")"]+[^\\"]+)":/g, "$1:")}, order: ASC, limit: 1) {
@@ -36,26 +37,18 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
     const result = await response.json()
     return result.data
   }
-  const tags = [
-    { name: "App-Name", value: "Bodhi" },
-    { name: "app-name", value: "SocialKing" },
-    { name: "author-platform", value: "twitter" },
-    { name: "author-username", value: req.body.tweet.username },
-    { name: "timestamp", value: req.body.tweet.timestamp },
-  ]
+  
   try {
-    const tx = await fetchTx(tags)
+    const tx = await fetchTx(req.body.tags)
     console.log("query results", tx)
     res.send({
       txId: tx.id
     })
-  } catch(error){
+  } catch (error) {
     res.send({
       txId: null
     })
   }
-
-
 }
 
 export default handler
