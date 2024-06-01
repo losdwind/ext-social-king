@@ -20,11 +20,14 @@ import {
   parseEther,
   toHex,
   type Chain,
+  type PrivateKeyAccount,
   type WriteContractParameters
 } from "viem"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
 import { optimism, sepolia } from "viem/chains"
 
 import { sendToBackground, sendToBackgroundViaRelay } from "@plasmohq/messaging"
+import { SecureStorage } from "@plasmohq/storage/secure"
 
 import { bodhiAbi } from "~core/bodhiAbi"
 
@@ -34,8 +37,7 @@ import { bodhiAbi } from "~core/bodhiAbi"
 //   // protocol: "https"
 // })
 export const config: PlasmoCSConfig = {
-  matches: ["https://twitter.com/*"],
-  world: "MAIN"
+  matches: ["https://twitter.com/*"]
 }
 
 export const getStyle = () => {
@@ -51,25 +53,31 @@ export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
   })
 }
 
-const walletClient = createWalletClient({
-  chain: optimism as Chain,
-  transport: custom(window.ethereum)
-})
+const storage = new SecureStorage()
+var account: PrivateKeyAccount
 
-var globalAccount = null
 
 const onRequestAccount = async () => {
-  console.log("onRequestAccount")
-  await walletClient.switchChain({ id: sepolia.id })
-  const [account] = await walletClient.requestAddresses()
-  globalAccount = account
-  // await sendToBackground({
-  //   name: "syncAccount",
-  //   body: {
-  //     account: account
-  //   },
-  //   extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
-  // })
+  const storage = new SecureStorage()
+  const savedAccount = await storage.get("account")
+  console.log("saved Account", savedAccount)
+  if (savedAccount) {
+    return savedAccount
+  }
+  const privateKey = generatePrivateKey()
+  account = privateKeyToAccount(privateKey)
+  const client = createWalletClient({
+    account,
+    chain: sepolia,
+    transport: http()
+  })
+
+  await storage.setPassword("123456") // The only diff
+
+  await storage.set("pk", privateKey)
+  await storage.set("account", account)
+  console.log("init account", account)
+  return account
 }
 
 const onRequestTxId = async (tweet: Tweet) => {
@@ -78,30 +86,14 @@ const onRequestTxId = async (tweet: Tweet) => {
     { name: "app-name", value: "SocialKing" },
     { name: "author-platform", value: "twitter" },
     { name: "author-username", value: tweet.username },
-    { name: "timestamp", value: tweet.timestamp },
-    { name: "creator", value: globalAccount }
+    { name: "author-timestamp", value: tweet.timestamp },
+    { name: "creator", value: account }
   ]
-  // const txId = await sendToBackground({
-  //   name: "getTxId",
-  //   body: {
-  //     tags: [
-  //       { name: "App-Name", value: "Bodhi" },
-  //       { name: "app-name", value: "SocialKing" },
-  //       { name: "author-platform", value: "twitter" },
-  //       { name: "author-username", value: tweet.username },
-  //       { name: "timestamp", value: tweet.timestamp },
-  //       { name: "creator", value: globalAccount }
-  //     ]
-  //   },
-  //   extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
-  // })
   const txId = await sendToBackground({
     name: "getTxId",
     body: {
       tags: tags
-    },
-    extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
-
+    }
   })
   console.log("txId", txId)
 
@@ -114,27 +106,26 @@ const onRequestAssetId = async (txId: string) => {
     name: "getAssetId",
     body: {
       txId: txId
-    },
-    extensionId: process.env.PLASMO_PUBLIC_EXTENSION_ID
+    }
   })
   return assetId
 }
 
 const uploadAsset = async (tweet: Tweet) => {
   console.log("call uploadAsset")
-  const irysTxId = await sendToBackgroundViaRelay({
+  const tags = [
+    { name: "App-Name", value: "Bodhi" },
+    { name: "app-name", value: "SocialKing" },
+    { name: "author-platform", value: "twitter" },
+    { name: "author-username", value: tweet.username },
+    { name: "author-timestamp", value: tweet.timestamp },
+    { name: "creator", value: account }
+  ]
+  const irysTxId = await sendToBackground({
     name: "uploadAsset",
     body: {
-      tweet: tweet
-      // data: tweet.tweetURL,
-      // tags: [
-      //   { name: "App-Name", value: "Bodhi" },
-      //   { name: "app-name", value: "SocialKing" },
-      //   { name: "author-platform", value: "twitter" },
-      //   { name: "author-username", value: tweet.username },
-      //   { name: "timestamp", value: tweet.timestamp },
-      //   // { name: "creator", value: globalAccount }
-      // ]
+      content:tweet.tweetURL,
+      tags
     }
   })
   return irysTxId
@@ -142,16 +133,23 @@ const uploadAsset = async (tweet: Tweet) => {
 
 const onBuyShare = async (asset: number, share: number, tweet: Tweet) => {
   console.log("onBuyShare")
-  if (!globalAccount) {
+  if (!account) {
     await onRequestAccount()
   }
-  console.log("globalAccount", globalAccount)
+  const walletClient = createWalletClient({
+    account,
+    chain: sepolia,
+    transport: http()
+  })
+
+  console.log("globalAccount", account)
   const res = await onRequestTxId(tweet)
   console.log("res", res)
   if (!res.txId) {
     console.log("before call upload asset")
     const txId = await uploadAsset(tweet)
     console.log("upload asset", txId)
+
     const createResult = await walletClient.writeContract({
       address: toHex(process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS),
       abi: bodhiAbi,
@@ -177,9 +175,14 @@ const onBuyShare = async (asset: number, share: number, tweet: Tweet) => {
 
 const onSellShare = async (asset: number, share: number) => {
   console.log("onSellShare")
-  if (!globalAccount) {
+  if (!account) {
     await onRequestAccount()
   }
+  const walletClient = createWalletClient({
+    account,
+    chain: sepolia,
+    transport: http()
+  })
 
   await walletClient.writeContract({
     address: toHex(process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS),
