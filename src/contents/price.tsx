@@ -26,12 +26,13 @@ import {
   type WriteContractParameters
 } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { optimism, sepolia } from "viem/chains"
+import { sepolia} from "viem/chains"
 
 import { sendToBackground } from "@plasmohq/messaging"
 import { SecureStorage } from "@plasmohq/storage/secure"
 
 import { bodhiAbi } from "~core/bodhiAbi"
+import { chainlinkAbi } from "~core/chainlinkAbi"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://twitter.com/*"]
@@ -51,8 +52,8 @@ export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
 }
 
 const publicClient = createPublicClient({
-  chain: optimism as Chain,
-  transport: http()
+  chain: sepolia as Chain,
+  transport: http(process.env.PLASMO_PUBLIC_ALCHEMY_RPC)
 })
 
 const storage = new SecureStorage()
@@ -84,21 +85,21 @@ const onFirstCreate = async (tweet: Tweet) => {
   }
   const walletClient = createWalletClient({
     account,
-    chain: optimism as Chain,
-    transport: http()
+    chain: sepolia as Chain,
+    transport: http(process.env.PLASMO_PUBLIC_ALCHEMY_RPC)
   })
 
   const createResult = await walletClient.writeContract({
     address: process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS,
     abi: bodhiAbi,
     functionName: "create",
-    args: [toHex(tweet.tweetURL)],
+    args: [toHex(tweet.tweetURL), toHex(tweet.username)],
     account: account
   })
   console.log("create Result", createResult)
 }
 
-const onBuyShare = async (asset: number, share: number, tweet: Tweet) => {
+const onBuyShare = async (assetId: bigint, share: number, tweet: Tweet) => {
   console.log("onBuyShare")
   if (!account) {
     await onRequestAccount()
@@ -106,44 +107,50 @@ const onBuyShare = async (asset: number, share: number, tweet: Tweet) => {
 
   const walletClient = createWalletClient({
     account,
-    chain: optimism as Chain,
-    transport: http()
+    chain: sepolia as Chain,
+    transport: http(process.env.PLASMO_PUBLIC_ALCHEMY_RPC)
   })
 
+  const buyPrice = await publicClient.readContract({
+    address: process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS,
+    abi: bodhiAbi,
+    functionName: "getBuyPriceAfterFee",
+    args: [assetId, parseEther(share.toString())]
+  })
   await walletClient.writeContract({
     address: process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS,
     abi: bodhiAbi,
     functionName: "buy",
-    args: [BigInt(asset), parseEther(share.toString())],
-    account: account
+    args: [assetId, parseEther(share.toString())],
+    account: account,
+    value: buyPrice
   })
 
   console.log("Buying shares")
 }
 
-const onSellShare = async (asset: number, share: number) => {
+const onSellShare = async (assetId: bigint, share: number) => {
   console.log("onSellShare")
   if (!account) {
     await onRequestAccount()
   }
   const walletClient = createWalletClient({
     account,
-    chain: optimism as Chain,
-    transport: http()
+    chain: sepolia as Chain,
+    transport: http(process.env.PLASMO_PUBLIC_ALCHEMY_RPC)
   })
 
   await walletClient.writeContract({
     address: process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS,
     abi: bodhiAbi,
     functionName: "sell",
-    args: [BigInt(asset), parseEther(share.toString())],
+    args: [assetId, parseEther(share.toString())],
     account: account
   })
   console.log("Selling shares")
 }
 
 const getAssetId = async (tweetURL) => {
-  console.log("getBuyPrice")
   const assetId = await publicClient.readContract({
     address: process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS,
     abi: bodhiAbi,
@@ -156,24 +163,24 @@ const getAssetId = async (tweetURL) => {
   return assetId
 }
 
-const getBuyPrice = async (asset, share) => {
-  console.log("getBuyPrice")
+const getBuyPrice = async (assetId, share) => {
+  console.log("getBuyPriceAfterFee")
   const buyPrice = await publicClient.readContract({
     address: process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS,
     abi: bodhiAbi,
-    functionName: "getBuyPrice",
-    args: [BigInt(asset), parseEther(share.toString())]
+    functionName: "getBuyPriceAfterFee",
+    args: [assetId, parseEther(share.toString())]
   })
   return formatEther(buyPrice)
 }
 
-const getPool = async (asset: number) => {
+const getPool = async (assetId: bigint) => {
   console.log("getPool")
   const value = await publicClient.readContract({
     address: process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS,
     abi: bodhiAbi,
     functionName: "pool",
-    args: [BigInt(asset)]
+    args: [assetId]
   })
   return formatEther(value)
 }
@@ -208,7 +215,7 @@ function extractTweetData(tweetElement): Tweet {
 
 const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
   const [share, setShare] = useState(1)
-  const [asset, setAsset] = useState()
+  const [assetId, setAssetId] = useState<bigint>()
   const [totalValue, setTotalValue] = useState("0")
   const [price, setPrice] = useState("0")
   const [tweet, setTweet] = useState<Tweet>()
@@ -221,6 +228,7 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
       setTweet(tweet)
       const assetId = await getAssetId(tweet.tweetURL)
       console.log(assetId != 0n)
+      setAssetId(assetId)
       if (assetId != 0n) {
         const currentPrice = await getBuyPrice(assetId, share)
         const pool = await getPool(assetId)
@@ -237,16 +245,17 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
   return (
     <div className="flex flex-row items-center flex-1 gap-2 p-2 pl-4">
       <div className="flex flex-row gap-2 ">
+      {/* <Button size="sm" onClick={() => onClickBind}>Bind</Button> */}
         <Button
           size="sm"
           variant="outline"
-          onClick={() => onBuyShare(asset, share, tweet)}>
+          onClick={() => onBuyShare(assetId, share, tweet)}>
           Buy
         </Button>
         <Button
           size="sm"
           variant="outline"
-          onClick={() => onSellShare(asset, share)}>
+          onClick={() => onSellShare(assetId, share)}>
           Sell
         </Button>
       </div>
