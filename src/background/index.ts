@@ -1,15 +1,33 @@
-import "@plasmohq/messaging/background"
-import { Storage } from "@plasmohq/storage"
- 
-import { startHub } from "@plasmohq/messaging/pub-sub"
+import { createWalletClient, http } from "viem"
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
+import { sepolia } from "viem/chains"
 
-console.log(`BGSW - Starting Hub`)
-startHub()
-
+import { SecureStorage } from "@plasmohq/storage/secure"
 
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
   .catch((error) => console.error(error))
+
+chrome.runtime.onInstalled.addListener(async (details) => {
+  if (details.reason === "install") {
+    console.log("Extension installed. Generating wallet...")
+    // const privateKey = generatePrivateKey()
+
+    // const account = privateKeyToAccount(privateKey)
+
+    // const client = createWalletClient({
+    //   account,
+    //   chain: sepolia,
+    //   transport: http()
+    // })
+    // const storage = new SecureStorage()
+
+    // await storage.setPassword("123456") // The only diff
+
+    // await storage.set("pk", privateKey)
+    // await storage.set("account", account)
+  }
+})
 
 // chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
 //   if (!tab.url) return
