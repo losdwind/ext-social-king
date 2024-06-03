@@ -8,11 +8,13 @@ const handler: PlasmoMessaging.MessageHandler = async (req, res) => {
           assetId
           sender
           arTxId
+          blockNumber
+          blockTimestamp
         }
       }`
 
   fetch(
-    "https://api.studio.thegraph.com/query/72269/bodhi_wtf/version/latest",
+    process.env.PLASMO_PUBLIC_THE_GRAPH_ENDPOINT,
     {
       method: "POST",
       headers: {

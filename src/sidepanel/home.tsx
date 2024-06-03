@@ -4,71 +4,16 @@ import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { Search } from "lucide-react"
+import { Search, Wallet } from "lucide-react"
 import React, { useEffect, useState } from "react"
 
 import { sendToBackground } from "@plasmohq/messaging"
 
-import { storage } from "~sidepanel"
 
-import { LoginButton } from "./login"
-import { bodhiAbi } from "~core/bodhiAbi"
-import { createWalletClient, encodeAbiParameters, encodePacked, http, keccak256, parseEther, type Chain, type PrivateKeyAccount } from "viem"
-import { sepolia } from "viem/chains"
-import { chainlinkAbi } from "~core/chainlinkAbi"
-import { Button } from "@/components/ui/button"
-import { privateKeyToAccount } from "viem/accounts"
+import { Link } from "react-router-dom"
 import { SecureStorage } from "@plasmohq/storage/secure"
-var account: PrivateKeyAccount
-const onRequestAccount = async () => {
-  const storage = new SecureStorage()
-  const savedAccount = await storage.get("account")
-  console.log("saved Account", savedAccount)
-  if (savedAccount) {
-    return savedAccount
-  }
-  // const privateKey = generatePrivateKey()
-  const privateKey = process.env.PLASMO_PUBLIC_PRIVATE_KEY
-  account = privateKeyToAccount(privateKey)
 
-  await storage.setPassword("123456") // The only diff
-
-  await storage.set("pk", privateKey)
-  await storage.set("account", account)
-  console.log("init account", account)
-  return account
-}
-// import a from "data-base64:~assets/avatars/a.png"
-const onClickBind = async () => {
-  console.log("account", account)
-  if (!account) {
-    await onRequestAccount()
-  }
-  const walletClient = createWalletClient({
-    account,
-    chain: sepolia as Chain,
-    transport: http(process.env.PLASMO_PUBLIC_ALCHEMY_RPC)
-  })
-  console.log("account", account)
-
-  // const encodedData = encodeAbiParameters(
-  //   [
-  //     { name: 'x', type: 'uint' },
-  //     { name: 'y', type: 'string' },
-  //     { name: 'z', type: 'string' }
-  //   ],
-  //   [1n, "@figurichshu", "0x22271C6e574f36149907eb7753C07d0bEA7Ba98c"]
-  // )
-  // console.log("econdoedData", encodedData)
-
-  await walletClient.writeContract({
-    address: process.env.PLASMO_PUBLIC_CHAINLINK_CONTRACT_ADDRESS,
-    abi: chainlinkAbi,
-    functionName: "sendRequest",
-    args: [2926n, ["@figurichshu", "0x22271C6e574f36149907eb7753C07d0bEA7Ba98c"]],
-  })
-  console.log("succeed")
-}
+const storage = new SecureStorage()
 
 
 export function HomeTab() {
@@ -98,14 +43,7 @@ export function HomeTab() {
       if (error) {
         setError(error)
       }
-
-      const formatedPosts = posts.map((post: any) => ({
-        id: post.id,
-        assetId: post.assetId,
-        arTxId: post.arTxId,
-        sender: post.sender
-      }))
-      setPosts(formatedPosts)
+      setPosts(posts)
     }
     getPosts()
   }, [])
@@ -118,11 +56,12 @@ export function HomeTab() {
         <Tabs defaultValue="latest">
           <div className="flex items-center px-4 py-2">
             {/* <LoginButton /> */}
+            <Link to={"/wallet"}>
             <Avatar>
               <AvatarImage src={""} alt="Image" />
               <AvatarFallback>SK</AvatarFallback>
             </Avatar>
-            <Button size="sm" onClick={() => onClickBind()}>Bind</Button>
+            </Link>
             <TabsList className="ml-auto">
               <TabsTrigger
                 value="latest"
