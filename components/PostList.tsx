@@ -12,7 +12,9 @@ export type Post = {
   id: string
   assetId: string
   arTxId: string
-  sender: string
+  sender: string,
+  blockNumber:string,
+  blockTimestamp:string
 }
 
 interface PostListProps {
