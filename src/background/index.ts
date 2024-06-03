@@ -1,8 +1,8 @@
 import { createWalletClient, http } from "viem"
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts"
-import { sepolia } from "viem/chains"
+import { polygonAmoy } from "viem/chains"
 
-import { SecureStorage } from "@plasmohq/storage/secure"
+import { Storage } from "@plasmohq/storage"
 
 chrome.sidePanel
   .setPanelBehavior({ openPanelOnActionClick: true })
@@ -11,21 +11,16 @@ chrome.sidePanel
 chrome.runtime.onInstalled.addListener(async (details) => {
   if (details.reason === "install") {
     console.log("Extension installed. Generating wallet...")
-    // const privateKey = generatePrivateKey()
+    const privateKey = generatePrivateKey()
 
     // const account = privateKeyToAccount(privateKey)
 
-    // const client = createWalletClient({
-    //   account,
-    //   chain: sepolia,
-    //   transport: http()
-    // })
-    // const storage = new SecureStorage()
+    const storage = new Storage()
 
     // await storage.setPassword("123456") // The only diff
 
-    // await storage.set("pk", privateKey)
-    // await storage.set("account", account)
+    await storage.set("pk", privateKey)
+    console.log("pk",await storage.get("pk"))
   }
 })
 

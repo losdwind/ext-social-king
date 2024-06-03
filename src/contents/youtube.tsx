@@ -31,10 +31,9 @@ import { polygonAmoy } from "viem/chains"
 import { Storage } from "@plasmohq/storage"
 
 import { socialKingAbi } from "~core/socialKingAbi"
-import { maticToUSDAbi } from "~core/maticToUSDAbi"
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://twitter.com/*"]
+  matches: ["https://www.youtube.com/*"]
 }
 
 export const getStyle = () => {
@@ -44,9 +43,12 @@ export const getStyle = () => {
 }
 
 export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
-  const anchors = document.querySelectorAll('article[role="article"]')
-  return Array.from(anchors).map((element) => {
-    return { element, insertPosition: "afterend" }
+  // Target the container that usually houses interactive elements like 'Subscribe'
+  const videoCards = document.querySelectorAll("ytd-rich-grid-media")
+
+  return Array.from(videoCards).map((element) => {
+    // Assuming you want to insert your custom UI after this container
+    return { element, insertPosition:"beforeend" }
   })
 }
 
@@ -68,7 +70,7 @@ const onRequestAccount = async () => {
   }
 }
 
-const onFirstCreate = async (tweet: Tweet) => {
+const onFirstCreate = async (youtubeVideo: YouTubeVideo) => {
   if (!account) {
     await onRequestAccount()
   }
@@ -82,13 +84,17 @@ const onFirstCreate = async (tweet: Tweet) => {
     address: process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS,
     abi: socialKingAbi,
     functionName: "create",
-    args: [toHex(tweet.tweetURL), toHex(tweet.username)],
+    args: [toHex(youtubeVideo.videoURL), toHex(youtubeVideo.channelName)],
     account: account
   })
   console.log("create Result", createResult)
 }
 
-const onBuyShare = async (assetId: bigint, share: number, tweet: Tweet) => {
+const onBuyShare = async (
+  assetId: bigint,
+  share: number,
+  youtubeVideo: YouTubeVideo
+) => {
   console.log("onBuyShare")
   if (!account) {
     await onRequestAccount()
@@ -139,12 +145,12 @@ const onSellShare = async (assetId: bigint, share: number) => {
   console.log("Selling shares")
 }
 
-const getAssetId = async (tweetURL) => {
+const getAssetId = async (youtubeVideoURL) => {
   const assetId = await publicClient.readContract({
     address: process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS,
     abi: socialKingAbi,
     functionName: "txToAssetId",
-    args: [keccak256(encodePacked(["string"], [toHex(tweetURL)]))]
+    args: [keccak256(encodePacked(["string"], [toHex(youtubeVideoURL)]))]
   })
   console.log("assetId", assetId)
   return assetId
@@ -183,58 +189,59 @@ const getUSDPrice = async () => {
   return Number(usdPrice)/100000000.0
 }
 
-type Tweet = {
-  username: string
+type YouTubeVideo = {
+  channelName: string
   timestamp: string
-  tweetURL: string
+  videoURL: string
 }
 
-function extractTweetData(tweetElement): Tweet {
-  // Extracting username (@ handle)
-  const usernameElement = tweetElement.querySelector(
-    'a[href*="/"] > div > span'
-  )
-  const username = usernameElement ? usernameElement.textContent : null
+function extractVideoDetails(youtubeVideoElement):YouTubeVideo {
+  // Initialize an object to store the extracted data
+  var videoDetails:YouTubeVideo
+  // Extracting the channel name
+  const channelNameElement = youtubeVideoElement.querySelector('#text-container > yt-formatted-string');
+  if (channelNameElement) {
+    videoDetails.channelName = channelNameElement.textContent.trim();
+  }
 
-  // Extracting publish timestamp
-  const timestampElement = tweetElement.querySelector("time")
-  const timestamp = timestampElement
-    ? timestampElement.getAttribute("datetime")
-    : null
+  // Extracting the timestamp (publish date)
+  const timestampElement = youtubeVideoElement.querySelector('span.inline-metadata-item');
+  if (timestampElement) {
+    videoDetails.timestamp = timestampElement.textContent.trim();
+  }
 
-  // Extracting the unique URL of the tweet
-  const urlElement = tweetElement.querySelector('a[href*="/status/"]')
-  const tweetURL = urlElement
-    ? `https://twitter.com${urlElement.getAttribute("href")}`
-    : null
+  // Extracting the video URL
+  const videoLinkElement = youtubeVideoElement.querySelector('a#video-title-link');
+  if (videoLinkElement) {
+    videoDetails.videoURL = 'https://www.youtube.com' + videoLinkElement.getAttribute('href');
+  }
 
-  return { username, timestamp, tweetURL }
+  return videoDetails;
 }
 
-const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
+const Youtubes: FC<PlasmoCSUIProps> = ({ anchor }) => {
   const [share, setShare] = useState(1)
   const [assetId, setAssetId] = useState<bigint>()
   const [totalValue, setTotalValue] = useState("0")
   const [price, setPrice] = useState("0")
-  const [tweet, setTweet] = useState<Tweet>()
+  const [youtubeVideo, setYouTubeVideo] = useState<YouTubeVideo>()
   const [isShowFirstBuy, setIsShowFirstBuy] = useState(false)
   const [isBuying, setIsBuying] = useState(false)
   const [isSelling, setIsSelling] = useState(false)
 
   const [isLoadingFirstBuy, setIsLoadingFirstBuy] = useState(false)
   const [usdPrice, setUsdPrice] = useState(0)
+
   const fetch = async () => {
     // Automatically update the price and total value when shares change
-    const tweet = extractTweetData(anchor.element)
-    setTweet(tweet)
-    const assetId = await getAssetId(tweet.tweetURL)
+    const youtubeVideo = extractVideoDetails(anchor.element)
+    console.log("youtubeVideo",youtubeVideo)
+    setYouTubeVideo(youtubeVideo)
+    const assetId = await getAssetId(youtubeVideo.videoURL)
     setAssetId(assetId)
     if (assetId > 0n) {
       const currentPrice = await getBuyPrice(assetId, share)
       const pool = await getPool(assetId)
-      const usdPrice = await getUSDPrice()
-      console.log(usdPrice)
-      setUsdPrice(usdPrice)
       setPrice(currentPrice)
       setTotalValue(pool)
     } else {
@@ -249,16 +256,14 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
   return (
     <div className="flex flex-row items-center justify-between flex-1 gap-2 p-2 pl-4">
       <div className="flex flex-row gap-2 items-center justify-center">
-        {/* <div className="flex-shrink-0">
-          <p>Asset ID:{Number(assetId)}</p>
-        </div> */}
+
         <Button
           size="sm"
           variant="outline"
           disabled={isBuying}
           onClick={async () => {
             setIsBuying(true)
-            await onBuyShare(assetId, share, tweet)
+            await onBuyShare(assetId, share, youtubeVideo)
             const currentPrice = await getBuyPrice(assetId, share)
             const pool = await getPool(assetId)
             setPrice(currentPrice)
@@ -281,7 +286,7 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
             setTotalValue(pool)
             setIsSelling(false)
           }}>
-            {isSelling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSelling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Sell
         </Button>
       </div>
@@ -290,7 +295,7 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
           size="sm"
           onClick={async () => {
             setIsLoadingFirstBuy(true)
-            await onFirstCreate(tweet)
+            await onFirstCreate(youtubeVideo)
             const currentPrice = await getBuyPrice(assetId, share)
             const pool = await getPool(assetId)
             setPrice(currentPrice)
@@ -325,7 +330,7 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
               </div>
             </div>
           </div>
-          <div className="flex flex-row items-center gap-2 ml-auto mr-4">
+          <div className="flex flex-row flex-1 items-center gap-2">
             <div className="text-xl font-medium">
               {(parseFloat(totalValue) * usdPrice).toFixed(4)} USD
             </div>
@@ -335,4 +340,4 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
     </div>
   )
 }
-export default Price
+export default Youtubes

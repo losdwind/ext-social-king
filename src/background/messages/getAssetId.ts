@@ -3,7 +3,7 @@ import { optimism, type Chain } from "viem/chains"
 
 import type { PlasmoMessaging } from "@plasmohq/messaging"
 
-import { bodhiAbi } from "~core/bodhiAbi"
+import { socialKingAbi } from "~core/socialKingAbi"
 
 const publicClient = createPublicClient({
   chain: optimism as Chain,
@@ -15,7 +15,7 @@ const publicClient = createPublicClient({
 const getAssetId = async (txId: string) => {
   const assetId = await publicClient.readContract({
     address: toHex(process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS),
-    abi: bodhiAbi,
+    abi: socialKingAbi,
     functionName: "txToAssetId",
     args: [toHex(txId)]
   })
