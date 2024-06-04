@@ -1,8 +1,8 @@
 {
   "name": "Social King",
   "displayName": "Social King",
-  "version": "0.0.1",
-  "description": "A decentralized content earning platform",
+  "version": "0.0.2",
+  "description": "A decentralized content investing and trading platform",
   "author": "ashu",
   "scripts": {
     "dev": "plasmo dev",
