@@ -34,7 +34,7 @@ import { maticToUSDAbi } from "~core/maticToUSDAbi"
 import { socialKingAbi } from "~core/socialKingAbi"
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://twitter.com/*"]
+  matches: ["https://twitter.com/*","https://x.com/*"]
 }
 
 export const getStyle = () => {
