@@ -1,14 +1,15 @@
 import { AddressDisplay } from "@/components/AddressDisplay"
 import ContentViewer from "@/components/ContentViewer"
 import PostCard from "@/components/PostCard"
-import type { Post } from "@/components/PostList"
+import type { Creates } from "@/components/PostList"
+import SocialLinkViewer from "@/components/SocialLinkViewer"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ArrowLeftIcon } from "lucide-react"
 import { useNavigate, useParams } from "react-router-dom"
-import SocialLinkViewer from "@/components/SocialLinkViewer"
+
 import Chart from "./chart"
 
 export function Detail() {

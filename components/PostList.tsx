@@ -3,23 +3,18 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { cn } from "@/lib/utils"
 import formatDistanceToNow from "date-fns/formatDistanceToNow"
 import type { ComponentProps } from "react"
+import { Link } from "react-router-dom"
 
 import { useStorage } from "@plasmohq/storage/hook"
 
 import PostCard from "./PostCard"
-import { Link } from "react-router-dom"
+import type { Creates, Trades } from "~sidepanel/home"
 
-export type Post = {
-  id: string
-  assetId: string
-  arTxId: string
-  sender: string
-  blockNumber: string
-  blockTimestamp: string
-}
+
+
 
 interface PostListProps {
-  items: Post[]
+  items: Creates[] | Trades[]
 }
 
 export function PostList({ items }: PostListProps) {

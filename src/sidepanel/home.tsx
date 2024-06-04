@@ -1,4 +1,4 @@
-import { PostList, type Post } from "@/components/PostList"
+import { PostList, type Creates } from "@/components/PostList"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Input } from "@/components/ui/input"
 import { Separator } from "@/components/ui/separator"
@@ -6,49 +6,95 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { Search, Wallet } from "lucide-react"
 import React, { useEffect, useState } from "react"
+import { Link } from "react-router-dom"
+import { privateKeyToAddress } from "viem/accounts"
 
 import { sendToBackground } from "@plasmohq/messaging"
-
-
-import { Link } from "react-router-dom"
 import { SecureStorage } from "@plasmohq/storage/secure"
 
 const storage = new SecureStorage()
 
+export type Creates = {
+  id: string
+  assetId: string
+  arTxId: string
+  sender: string
+  blockNumber: string
+  blockTimestamp: string
+}
+export type Trades = {
+  id:string
+  assetId:string
+  arTxId: string
+  sender:string
+  blockNumber:string
+  blockTimestamp:string
+  creatorFee:string
+  ethAmount:string
+  tokenAmount:string
+  tradeType:string
+}
 
 export function HomeTab() {
-  const [posts, setPosts] = useState<Post[]>([])
+  const [latestCreates, setlatestCreates] = useState<Creates[]>([])
+  const [userCreates, setUserCreates] = useState<Creates[]>([])
+  const [userTrades, setUserTrades] = useState<Trades[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState("")
-  const [account, setAccount] = useState("")
+  const [address, setAddress] = useState("")
 
   storage.watch({
-    account: (c) => {
-      setAccount(c.newValue)
+    pk: (c) => {
+      setAddress(privateKeyToAddress(c.newValue))
     }
   })
 
+  const getLatestCreates = async () => {
+    setLoading(true)
+    const { posts, error } = await sendToBackground({
+      name: "getPosts",
+      body: {}
+    })
+    setLoading(false)
+
+    if (error) {
+      setError(error)
+    }
+    setlatestCreates(posts)
+  }
+
+  const getUserCreates = async () => {
+    setLoading(true)
+    const { posts, error } = await sendToBackground({
+      name: "getUserCreates",
+      body: { address }
+    })
+    setLoading(false)
+    if (error) {
+      setError(error)
+    }
+    setUserCreates(posts)
+  }
+
+  const getUserTrades = async () => {
+    setLoading(true)
+    const { posts, error } = await sendToBackground({
+      name: "getUserTrades",
+      body: { address }
+    })
+    setLoading(false)
+    if (error) {
+      setError(error)
+    }
+    setUserTrades(posts)
+  }
+
   useEffect(() => {
     setLoading(true)
-
-    const getPosts = async () => {
-      setLoading(true)
-      const { posts, error } = await sendToBackground({
-        name: "getPosts",
-        body: {},
-        extensionId: process.env.PLASMO_EXTENSION_ID
-      })
-      setLoading(false)
-
-      if (error) {
-        setError(error)
-      }
-      setPosts(posts)
-    }
-    getPosts()
+    getLatestCreates()
+    getUserCreates()
+    getUserTrades
   }, [])
-  // if (loading) return <div className="flex m-auto">Loading...</div>
-  // if (error) return <div className="flex m-auto">Error: {error}</div>
 
   return (
     <TooltipProvider delayDuration={0}>
@@ -57,10 +103,10 @@ export function HomeTab() {
           <div className="flex items-center px-4 py-2">
             {/* <LoginButton /> */}
             <Link to={"/wallet"}>
-            <Avatar>
-              <AvatarImage src={""} alt="Image" />
-              <AvatarFallback>SK</AvatarFallback>
-            </Avatar>
+              <Avatar>
+                <AvatarImage src={""} alt="Image" />
+                <AvatarFallback>SK</AvatarFallback>
+              </Avatar>
             </Link>
             <TabsList className="ml-auto">
               <TabsTrigger
@@ -78,6 +124,16 @@ export function HomeTab() {
                 className="text-zinc-600 dark:text-zinc-200">
                 King
               </TabsTrigger>
+              <TabsTrigger
+                value="king"
+                className="text-zinc-600 dark:text-zinc-200">
+                My Creates
+              </TabsTrigger>
+              <TabsTrigger
+                value="king"
+                className="text-zinc-600 dark:text-zinc-200">
+                My Trades
+              </TabsTrigger>
             </TabsList>
           </div>
           <Separator />
@@ -90,17 +146,22 @@ export function HomeTab() {
             </form>
           </div>
           <TabsContent value="latest" className="m-0">
-            <PostList items={posts} />
+            <PostList items={latestCreates} />
           </TabsContent>
           <TabsContent value="hot" className="m-0">
-            <PostList items={posts.reverse()} />
+            <PostList items={latestCreates.reverse()} />
           </TabsContent>
           <TabsContent value="king" className="m-0">
-            <PostList items={posts.slice(-3)} />
+            <PostList items={latestCreates.slice(-3)} />
+          </TabsContent>
+          <TabsContent value="king" className="m-0">
+            <PostList items={userCreates} />
+          </TabsContent>
+          <TabsContent value="king" className="m-0">
+            <PostList items={userTrades} />
           </TabsContent>
         </Tabs>
       </div>
     </TooltipProvider>
   )
 }
-

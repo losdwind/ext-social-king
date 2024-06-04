@@ -226,9 +226,9 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
 
   const tweet = extractTweetData(anchor.element)
   var usdPrice = 0.69
-  // getUSDPrice().then((price) => {
-  //   usdPrice = price
-  // })
+  getUSDPrice().then((price) => {
+    usdPrice = price
+  })
   const fetch = async () => {
     const assetId = await getAssetId(tweet.tweetURL)
     setAssetId(assetId)

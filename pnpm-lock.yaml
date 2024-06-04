@@ -176,6 +176,9 @@ importers:
       react-social-media-embed:
         specifier: ^2.5.13
         version: 2.5.13(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react-tweet-embed:
+        specifier: ^2.0.0
+        version: 2.0.0(react@18.2.0)
       recharts:
         specifier: ^2.12.7
         version: 2.12.7(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -4696,6 +4699,11 @@ packages:
     peerDependencies:
       react: '>=16.6.0'
       react-dom: '>=16.6.0'
+
+  react-tweet-embed@2.0.0:
+    resolution: {integrity: sha512-g2kfPjSRTOKeJtaQF5EMuSTmp/q8I0qdDs/pZ2qLXZjCWExDT/JgjxSlyM65NyNzsz8072PDpvlO/sIXwwVpdQ==}
+    peerDependencies:
+      react: '>=17'
 
   react-twitter-embed@4.0.4:
     resolution: {integrity: sha512-2JIL7qF+U62zRzpsh6SZDXNI3hRNVYf5vOZ1WRcMvwKouw+xC00PuFaD0aEp2wlyGaZ+f4x2VvX+uDadFQ3HVA==}
@@ -10897,6 +10905,10 @@ snapshots:
       prop-types: 15.8.1
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
+
+  react-tweet-embed@2.0.0(react@18.2.0):
+    dependencies:
+      react: 18.2.0
 
   react-twitter-embed@4.0.4(react-dom@18.2.0(react@18.2.0))(react@18.2.0):
     dependencies:

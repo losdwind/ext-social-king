@@ -202,7 +202,7 @@ export default function wallet() {
               <p className="text-sm text-gray-500 dark:text-gray-400">
                 Wallet Address
               </p>
-              <p className="font-mono text-sm">
+              <p className="break-words font-mono text-sm">
                 {privateKey ? privateKeyToAddress(privateKey) : ""}
               </p>
             </div>
@@ -279,11 +279,13 @@ export default function wallet() {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Wallet Private Key
             </p>
-            <Button variant="secondary" onClick={() => setIsShowingPrivateKey((prev) => !prev)}>
+            <Button
+              variant="secondary"
+              onClick={() => setIsShowingPrivateKey((prev) => !prev)}>
               {isShowingPrivateKey ? "Hide" : "Show"}
             </Button>
             {isShowingPrivateKey && (
-              <p className="text-wrap font-mono text-sm">{privateKey}</p>
+              <p className="break-words font-mono text-sm">{privateKey}</p>
             )}
           </div>
         </CardContent>
