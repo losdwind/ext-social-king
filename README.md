@@ -1,18 +1,29 @@
 
+![logo](https://github.com/losdwind/ext-social-king/assets/4186909/1d891156-e86a-473b-a3c6-c8dca30b3b3a)
+
+
+![extension-side-panel](https://github.com/losdwind/ext-social-king/assets/4186909/1f1acf5b-0e0b-4b58-bcaa-d2464b879316)
+
+
+![buy sell](https://github.com/losdwind/ext-social-king/assets/4186909/4fa182ef-007d-4ec3-88f1-31f1191e2036)
+
 
 # Social King: Content Trading & Investing Platform
 Social King leverages the principle that successful content behaves like successful memes, transforming the way we trade and invest in social media content.
+
 
 ## Features
 - Content Trading: Buy and sell rights to social media posts and content from platforms like Twitter and YouTube.
 - Commission Structure: Implements a commission fee structure where 1% goes to the creator, 3% to the author, and 1% to the Social King platform, incentivizing content creation and platform growth.
 - Chrome Extension: Features a convenient Chrome extension that embeds buy/sell buttons directly on Twitter and YouTube interfaces, alongside a browser side panel that highlights trending posts.
+
+  
 ## Tech Stack
 - ERC1155 (Ethereum): Utilizes the ERC1155 token standard for efficient multi-token management.
 - Chainlink: Integrates Chainlink for decentralized oracle functions and real-time data feeds to ensure accurate pricing and secure account bindings.
 - TheGraph: Leverages TheGraph for indexing and querying blockchain data, enhancing data retrieval efficiency.
 - Plasmo Framework: Employs the Plasmo browser extension framework for robust, scalable extension development.
-
+  
 
 ## Getting Started
 
