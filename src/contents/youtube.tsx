@@ -48,7 +48,7 @@ export const getInlineAnchorList: PlasmoGetInlineAnchorList = async () => {
 
   return Array.from(videoCards).map((element) => {
     // Assuming you want to insert your custom UI after this container
-    return { element, insertPosition:"beforeend" }
+    return { element, insertPosition: "beforeend" }
   })
 }
 
@@ -186,7 +186,7 @@ const getUSDPrice = async () => {
     functionName: "getChainlinkDataFeedLatestAnswer",
     args: []
   })
-  return Number(usdPrice)/100000000.0
+  return Number(usdPrice) / 100000000.0
 }
 
 type YouTubeVideo = {
@@ -195,28 +195,34 @@ type YouTubeVideo = {
   videoURL: string
 }
 
-function extractVideoDetails(youtubeVideoElement):YouTubeVideo {
+function extractVideoDetails(youtubeVideoElement): YouTubeVideo {
   // Initialize an object to store the extracted data
-  var videoDetails:YouTubeVideo
+  var videoDetails: YouTubeVideo
   // Extracting the channel name
-  const channelNameElement = youtubeVideoElement.querySelector('#text-container > yt-formatted-string');
+  const channelNameElement = youtubeVideoElement.querySelector(
+    "#text-container > yt-formatted-string"
+  )
   if (channelNameElement) {
-    videoDetails.channelName = channelNameElement.textContent.trim();
+    videoDetails.channelName = channelNameElement.textContent.trim()
   }
 
   // Extracting the timestamp (publish date)
-  const timestampElement = youtubeVideoElement.querySelector('span.inline-metadata-item');
+  const timestampElement = youtubeVideoElement.querySelector(
+    "span.inline-metadata-item"
+  )
   if (timestampElement) {
-    videoDetails.timestamp = timestampElement.textContent.trim();
+    videoDetails.timestamp = timestampElement.textContent.trim()
   }
 
   // Extracting the video URL
-  const videoLinkElement = youtubeVideoElement.querySelector('a#video-title-link');
+  const videoLinkElement =
+    youtubeVideoElement.querySelector("a#video-title-link")
   if (videoLinkElement) {
-    videoDetails.videoURL = 'https://www.youtube.com' + videoLinkElement.getAttribute('href');
+    videoDetails.videoURL =
+      "https://www.youtube.com" + videoLinkElement.getAttribute("href")
   }
 
-  return videoDetails;
+  return videoDetails
 }
 
 const Youtubes: FC<PlasmoCSUIProps> = ({ anchor }) => {
@@ -224,19 +230,20 @@ const Youtubes: FC<PlasmoCSUIProps> = ({ anchor }) => {
   const [assetId, setAssetId] = useState<bigint>()
   const [totalValue, setTotalValue] = useState("0")
   const [price, setPrice] = useState("0")
-  const [youtubeVideo, setYouTubeVideo] = useState<YouTubeVideo>()
   const [isShowFirstBuy, setIsShowFirstBuy] = useState(false)
   const [isBuying, setIsBuying] = useState(false)
   const [isSelling, setIsSelling] = useState(false)
 
   const [isLoadingFirstBuy, setIsLoadingFirstBuy] = useState(false)
-  const [usdPrice, setUsdPrice] = useState(0)
+  // Automatically update the price and total value when shares change
+  const youtubeVideo = extractVideoDetails(anchor.element)
 
+  console.log("youtubeVideo", youtubeVideo)
+  var usdPrice = 0.69
+  // getUSDPrice().then((price) => {
+  //   usdPrice = price
+  // })
   const fetch = async () => {
-    // Automatically update the price and total value when shares change
-    const youtubeVideo = extractVideoDetails(anchor.element)
-    console.log("youtubeVideo",youtubeVideo)
-    setYouTubeVideo(youtubeVideo)
     const assetId = await getAssetId(youtubeVideo.videoURL)
     setAssetId(assetId)
     if (assetId > 0n) {
@@ -256,7 +263,6 @@ const Youtubes: FC<PlasmoCSUIProps> = ({ anchor }) => {
   return (
     <div className="flex flex-row items-center justify-between flex-1 gap-2 p-2 pl-4">
       <div className="flex flex-row gap-2 items-center justify-center">
-
         <Button
           size="sm"
           variant="outline"
@@ -296,6 +302,8 @@ const Youtubes: FC<PlasmoCSUIProps> = ({ anchor }) => {
           onClick={async () => {
             setIsLoadingFirstBuy(true)
             await onFirstCreate(youtubeVideo)
+            const assetId = await getAssetId(youtubeVideo.videoURL)
+            setAssetId(assetId)
             const currentPrice = await getBuyPrice(assetId, share)
             const pool = await getPool(assetId)
             setPrice(currentPrice)
@@ -324,13 +332,13 @@ const Youtubes: FC<PlasmoCSUIProps> = ({ anchor }) => {
               <Plus className="text-xs font-thin" />
             </Button>
             <div className="text-xs font-light">
-              <div>{(parseFloat(price)* usdPrice).toFixed(4)} USD</div>
+              <div>{(parseFloat(price) * usdPrice).toFixed(4)} USD</div>
               <div>
                 for {share} share{share !== 1 ? "s" : ""}
               </div>
             </div>
           </div>
-          <div className="flex flex-row flex-1 items-center gap-2">
+          <div className="flex flex-row flex-1 items-center gap-2 ml-auto mr-4">
             <div className="text-xl font-medium">
               {(parseFloat(totalValue) * usdPrice).toFixed(4)} USD
             </div>

@@ -90,7 +90,7 @@ const publicClient = createPublicClient({
   transport: http(process.env.PLASMO_PUBLIC_ALCHEMY_RPC)
 })
 
-const getBalance = async (address:`0x${string}`) => {
+const getBalance = async (address: `0x${string}`) => {
   const maticBalance = await publicClient.getBalance({ address })
   return formatEther(maticBalance)
 }
@@ -132,7 +132,6 @@ export default function wallet() {
   const [username, setUsername] = useState<string>()
   const [isShowingPrivateKey, setIsShowingPrivateKey] = useState(false)
   const [privateKey] = useStorage("pk")
-
   const [chain, setChain] = useState(polygonAmoy)
   const [balances, setBalances] = useState("0")
   const [userBalances, setUserBalances] = useState("0")
@@ -234,6 +233,9 @@ export default function wallet() {
             </Button>
           </div>
           <div className="flex flex-col gap-2">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Claim Your Profit
+            </p>
             <Button
               onClick={() => onClickClaim(privateKeyToAccount(privateKey))}>
               {" "}
@@ -242,20 +244,28 @@ export default function wallet() {
           </div>
 
           <div className="flex flex-col gap-2">
-            <Button
-              size="sm"
-              onClick={() =>
-                onClickBind(username, privateKeyToAccount(privateKey))
-              }>
-              Bind Social Account
-            </Button>
-            <Input
-              onChange={(e) => {
-                setUsername(e.target.value)
-              }}
-              value={username}
-              placeholder="@socialking"
-            />
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Bind your social account to claim author rewards
+            </p>
+            <div className="flex flex-row gap-2">
+              <div className="flex flex-1">
+                <Input
+                  onChange={(e) => {
+                    setUsername(e.target.value)
+                  }}
+                  value={username}
+                  placeholder="@socialking"
+                />
+              </div>
+              <Button
+                size="sm"
+                onClick={() =>
+                  onClickBind(username, privateKeyToAccount(privateKey))
+                }>
+                Bind
+              </Button>
+            </div>
+
             <Button
               onClick={() =>
                 onClickAuthorClaim(privateKeyToAccount(privateKey))
@@ -263,6 +273,18 @@ export default function wallet() {
               {" "}
               Author Claim: {authorBalances} Matic
             </Button>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Wallet Private Key
+            </p>
+            <Button variant="secondary" onClick={() => setIsShowingPrivateKey((prev) => !prev)}>
+              {isShowingPrivateKey ? "Hide" : "Show"}
+            </Button>
+            {isShowingPrivateKey && (
+              <p className="text-wrap font-mono text-sm">{privateKey}</p>
+            )}
           </div>
         </CardContent>
       </Card>

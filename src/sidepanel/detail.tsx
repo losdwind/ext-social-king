@@ -8,11 +8,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { ArrowLeftIcon } from "lucide-react"
 import { useNavigate, useParams } from "react-router-dom"
+import SocialLinkViewer from "@/components/SocialLinkViewer"
 import Chart from "./chart"
 
 export function Detail() {
-  const { id } = useParams()
-  console.log(id)
+  const { url } = useParams()
+  console.log(url)
   const navigate = useNavigate()
 
   const handleBackClick = () => {
@@ -43,19 +44,7 @@ export function Detail() {
           <Separator />
           <TabsContent value="content" className="m-0">
             <div className="max-w-md mx-auto rounded-lg dark:bg-gray-950">
-              {/* <div className="flex items-center justify-between mb-4">
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  <span className="font-medium">
-                    <AddressDisplay address={post.sender} />
-                  </span>
-                  | Post #${post.assetId}
-                  {"\n                        "}
-                </div>
-                <div className="text-sm text-gray-500 dark:text-gray-400">
-                  April 27, 2024
-                </div>
-              </div> */}
-              <ContentViewer transactionId={id} />
+              <SocialLinkViewer hexString={url} />
             </div>
           </TabsContent>
           <TabsContent value="chart" className="m-0">

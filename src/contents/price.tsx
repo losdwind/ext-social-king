@@ -30,8 +30,8 @@ import { polygonAmoy } from "viem/chains"
 
 import { Storage } from "@plasmohq/storage"
 
-import { socialKingAbi } from "~core/socialKingAbi"
 import { maticToUSDAbi } from "~core/maticToUSDAbi"
+import { socialKingAbi } from "~core/socialKingAbi"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://twitter.com/*"]
@@ -163,12 +163,14 @@ const getBuyPrice = async (assetId, share) => {
 
 const getPool = async (assetId: bigint) => {
   console.log("getPool")
+  setTimeout(()=>{}, 5000)
   const value = await publicClient.readContract({
     address: process.env.PLASMO_PUBLIC_CONTRACT_ADDRESS,
     abi: socialKingAbi,
     functionName: "pool",
     args: [assetId]
   })
+  console.log("get pool", value)
   return formatEther(value)
 }
 
@@ -180,7 +182,7 @@ const getUSDPrice = async () => {
     functionName: "getChainlinkDataFeedLatestAnswer",
     args: []
   })
-  return Number(usdPrice)/100000000.0
+  return Number(usdPrice) / 100000000.0
 }
 
 type Tweet = {
@@ -216,25 +218,23 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
   const [assetId, setAssetId] = useState<bigint>()
   const [totalValue, setTotalValue] = useState("0")
   const [price, setPrice] = useState("0")
-  const [tweet, setTweet] = useState<Tweet>()
   const [isShowFirstBuy, setIsShowFirstBuy] = useState(false)
   const [isBuying, setIsBuying] = useState(false)
   const [isSelling, setIsSelling] = useState(false)
 
   const [isLoadingFirstBuy, setIsLoadingFirstBuy] = useState(false)
-  const [usdPrice, setUsdPrice] = useState(0)
+
+  const tweet = extractTweetData(anchor.element)
+  var usdPrice = 0.69
+  // getUSDPrice().then((price) => {
+  //   usdPrice = price
+  // })
   const fetch = async () => {
-    // Automatically update the price and total value when shares change
-    const tweet = extractTweetData(anchor.element)
-    setTweet(tweet)
     const assetId = await getAssetId(tweet.tweetURL)
     setAssetId(assetId)
     if (assetId > 0n) {
       const currentPrice = await getBuyPrice(assetId, share)
       const pool = await getPool(assetId)
-      const usdPrice = await getUSDPrice()
-      console.log(usdPrice)
-      setUsdPrice(usdPrice)
       setPrice(currentPrice)
       setTotalValue(pool)
     } else {
@@ -244,7 +244,7 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
 
   useEffect(() => {
     fetch()
-  }, [share]) // Depend on share to trigger updates
+  }, [share])
 
   return (
     <div className="flex flex-row items-center justify-between flex-1 gap-2 p-2 pl-4">
@@ -281,16 +281,19 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
             setTotalValue(pool)
             setIsSelling(false)
           }}>
-            {isSelling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {isSelling && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           Sell
         </Button>
       </div>
       {isShowFirstBuy ? (
         <Button
           size="sm"
+          disabled={isLoadingFirstBuy}
           onClick={async () => {
             setIsLoadingFirstBuy(true)
             await onFirstCreate(tweet)
+            const assetId = await getAssetId(tweet.tweetURL)
+            setAssetId(assetId)
             const currentPrice = await getBuyPrice(assetId, share)
             const pool = await getPool(assetId)
             setPrice(currentPrice)
@@ -302,7 +305,7 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
           {isLoadingFirstBuy && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          Be the first Buyer
+          Be the first buyer, get 1% reward
         </Button>
       ) : (
         <div className="flex flex-row w-full gap-2">
@@ -319,7 +322,7 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
               <Plus className="text-xs font-thin" />
             </Button>
             <div className="text-xs font-light">
-              <div>{(parseFloat(price)* usdPrice).toFixed(4)} USD</div>
+              <div>{(parseFloat(price) * usdPrice).toFixed(4)} USD</div>
               <div>
                 for {share} share{share !== 1 ? "s" : ""}
               </div>
