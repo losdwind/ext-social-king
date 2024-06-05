@@ -218,7 +218,7 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
   const [assetId, setAssetId] = useState<bigint>()
   const [totalValue, setTotalValue] = useState("0")
   const [price, setPrice] = useState("0")
-  const [isShowFirstBuy, setIsShowFirstBuy] = useState(false)
+  const [isShowFirstBuy, setIsShowFirstBuy] = useState(true)
   const [isBuying, setIsBuying] = useState(false)
   const [isSelling, setIsSelling] = useState(false)
 
@@ -237,9 +237,8 @@ const Price: FC<PlasmoCSUIProps> = ({ anchor }) => {
       const pool = await getPool(assetId)
       setPrice(currentPrice)
       setTotalValue(pool)
-    } else {
-      setIsShowFirstBuy(true)
-    }
+      setIsShowFirstBuy(false)
+    } 
   }
 
   useEffect(() => {

@@ -199,19 +199,33 @@ function extractVideoDetails(youtubeVideoElement): YouTubeVideo {
   // Initialize an object to store the extracted data
   var videoDetails: YouTubeVideo
   // Extracting the channel name
+  // Extract the channel name
   const channelNameElement = youtubeVideoElement.querySelector(
-    "#text-container > yt-formatted-string"
+    "yt-formatted-string.style-scope.ytd-channel-name.complex-string"
   )
-  if (channelNameElement) {
-    videoDetails.channelName = channelNameElement.textContent.trim()
-  }
+  const channelName = channelNameElement
+    ? channelNameElement.textContent.trim()
+    : null
 
-  // Extracting the timestamp (publish date)
+  // Extract the video URL
+  const videoUrlElement =
+    youtubeVideoElement.querySelector("a#video-title-link")
+  const videoUrl = videoUrlElement
+    ? "https://www.youtube.com" + videoUrlElement.getAttribute("href")
+    : null
+
+  // Extract the timestamp
   const timestampElement = youtubeVideoElement.querySelector(
-    "span.inline-metadata-item"
+    "span.inline-metadata-item.style-scope.ytd-video-meta-block"
   )
-  if (timestampElement) {
-    videoDetails.timestamp = timestampElement.textContent.trim()
+  const timestamp = timestampElement
+    ? timestampElement.textContent.trim()
+    : null
+
+  return {
+    channelName: channelName,
+    videoUrl: videoUrl,
+    timestamp: timestamp
   }
 
   // Extracting the video URL
@@ -230,7 +244,7 @@ const Youtubes: FC<PlasmoCSUIProps> = ({ anchor }) => {
   const [assetId, setAssetId] = useState<bigint>()
   const [totalValue, setTotalValue] = useState("0")
   const [price, setPrice] = useState("0")
-  const [isShowFirstBuy, setIsShowFirstBuy] = useState(false)
+  const [isShowFirstBuy, setIsShowFirstBuy] = useState(true)
   const [isBuying, setIsBuying] = useState(false)
   const [isSelling, setIsSelling] = useState(false)
 
@@ -251,8 +265,7 @@ const Youtubes: FC<PlasmoCSUIProps> = ({ anchor }) => {
       const pool = await getPool(assetId)
       setPrice(currentPrice)
       setTotalValue(pool)
-    } else {
-      setIsShowFirstBuy(true)
+      setIsShowFirstBuy(false)
     }
   }
 
@@ -315,7 +328,7 @@ const Youtubes: FC<PlasmoCSUIProps> = ({ anchor }) => {
           {isLoadingFirstBuy && (
             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
           )}
-          Be the first Buyer
+          Be the first buyer, get 1% reward
         </Button>
       ) : (
         <div className="flex flex-row w-full gap-2">

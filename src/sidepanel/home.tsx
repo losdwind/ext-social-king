@@ -23,16 +23,16 @@ export type Creates = {
   blockTimestamp: string
 }
 export type Trades = {
-  id:string
-  assetId:string
+  id: string
+  assetId: string
   arTxId: string
-  sender:string
-  blockNumber:string
-  blockTimestamp:string
-  creatorFee:string
-  ethAmount:string
-  tokenAmount:string
-  tradeType:string
+  sender: string
+  blockNumber: string
+  blockTimestamp: string
+  creatorFee: string
+  ethAmount: string
+  tokenAmount: string
+  tradeType: string
 }
 
 export function HomeTab() {
@@ -125,14 +125,14 @@ export function HomeTab() {
                 King
               </TabsTrigger>
               <TabsTrigger
-                value="king"
+                value="my"
                 className="text-zinc-600 dark:text-zinc-200">
-                My Creates
+                My
               </TabsTrigger>
               <TabsTrigger
-                value="king"
+                value="trades"
                 className="text-zinc-600 dark:text-zinc-200">
-                My Trades
+                Trades
               </TabsTrigger>
             </TabsList>
           </div>
@@ -154,10 +154,10 @@ export function HomeTab() {
           <TabsContent value="king" className="m-0">
             <PostList items={latestCreates.slice(-3)} />
           </TabsContent>
-          <TabsContent value="king" className="m-0">
+          <TabsContent value="my" className="m-0">
             <PostList items={userCreates} />
           </TabsContent>
-          <TabsContent value="king" className="m-0">
+          <TabsContent value="trades" className="m-0">
             <PostList items={userTrades} />
           </TabsContent>
         </Tabs>
